@@ -29,7 +29,8 @@
 #### Preparando o R para análise
 ####=============================
 rm(list=ls(all=T))#Limpar ambiente/histórico
-setwd("C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto")#Diretório
+#setwd("C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto")#Diretório
+setwd('C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos')
 
 ####=================================
 #### Instalando e carregando pacotes
@@ -41,6 +42,7 @@ if(!require(tidyverse)){ install.packages("tidyverse"); require(tidyverse)}#Mani
 if(!require(ggplot2)){ install.packages("ggplot2"); require(ggplot2)}
 if(!require(splitstackshape)){ install.packages("splitstackshape"); require(splitstackshape)}#Dividir o conjunto de dados em treino e teste
 if(!require(randomForest)){ install.packages("randomForest"); require(randomForest)}
+if(!require(MLmetrics)){ install.packages("MLmetrics"); require(MLmetrics)}
 
 ####=========
 #### Funções
@@ -186,341 +188,479 @@ TesteDeNormalidade = function(x){
   return(tabela)
 }
 
-####=============================
-#### Carregando o banco de dados 
-####=============================
-dados = read.xlsx("C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Dados Humberto 10-11-2023.xlsx", sheet = 1)
+TabelaModelo = function(modelo,casasdecimaisExpB=F){
+  options(OutDec=",")
+  if(casasdecimaisExpB == F){
+    Tabela = data.frame("Variáveis" = rownames(summary(modelo)$coefficients),
+                        "β" = summary(modelo)$coefficients[,1],
+                        "Exp β" = exp(summary(modelo)$coefficients[,1]),
+                        "Alteração" = (exp(summary(modelo)$coefficients[,1]) - 1),
+                        "I.C. (Exp β)" = paste0("[",round(exp(summary(modelo)$coefficients[,1]-1.96*summary(modelo)$coefficients[,2]),3),"; ",
+                                                round(exp(summary(modelo)$coefficients[,1]+1.96*summary(modelo)$coefficients[,2]),3),"]"),
+                        "I.C. (Alteração)" = paste0("[",round((exp(summary(modelo)$coefficients[,1]-1.96*summary(modelo)$coefficients[,2])-1)*100,2),"%; ",
+                                                    round((exp(summary(modelo)$coefficients[,1]+1.96*summary(modelo)$coefficients[,2])-1)*100,2),"%]"),
+                        "Valor-p" = round(summary(modelo)$coefficients[,4],4))
+  }else{
+    Tabela = data.frame("Variáveis" = rownames(summary(modelo)$coefficients),
+                        "β" = summary(modelo)$coefficients[,1],
+                        "Exp β" = round(exp(summary(modelo)$coefficients[,1]),casasdecimaisExpB),
+                        "Alteração" = (exp(summary(modelo)$coefficients[,1]) - 1),
+                        "I.C. (Exp β)" = paste0("[",round(exp(summary(modelo)$coefficients[,1]-1.96*summary(modelo)$coefficients[,2]),casasdecimaisExpB),"; ",
+                                                round(exp(summary(modelo)$coefficients[,1]+1.96*summary(modelo)$coefficients[,2]),casasdecimaisExpB),"]"),
+                        "I.C. (Alteração)" = paste0("[",round((exp(summary(modelo)$coefficients[,1]-1.96*summary(modelo)$coefficients[,2])-1)*100,casasdecimaisExpB),"%; ",
+                                                    round((exp(summary(modelo)$coefficients[,1]+1.96*summary(modelo)$coefficients[,2])-1)*100,casasdecimaisExpB),"%]"),
+                        "Valor-p" = round(summary(modelo)$coefficients[,4],4))
+  }
+  row.names(Tabela) = NULL
+  return(Tabela)
+}
 
-####=====================
-#### Tratamento de dados
-####=====================
-dados[dados == 'NULL'] = NA
-dados[dados == '99) SEM INFORMAÇÃO'] = NA
+MetricasRegressao = function(modelo,dados_teste,var_resposta_teste){
+  erro_mae = MAE(predict(modelo,dados_teste), var_resposta_teste)
+  erro_mse = MSE(predict(modelo,dados_teste), var_resposta_teste)
+  erro_rmse = RMSE(predict(modelo,dados_teste), var_resposta_teste)
+  erro_rmsle = RMSLE(predict(modelo,dados_teste), var_resposta_teste)
+  erro_mape = MAPE(predict(modelo,dados_teste), var_resposta_teste)
+  r2_mod = R2_Score(predict(modelo,dados_teste), var_resposta_teste)
+  Tabela = data.frame('Métricas' = c('MAE','MSE','RMSE','RMSLE','MAPE','R²'),
+                      'Valores' = c(erro_mae,erro_mse,erro_rmse,erro_rmsle,erro_mape,r2_mod))
+  return(Tabela)
+}
 
-dados$EstadoCivil_1 = ifelse(dados$EstadoCivil1 == '1) CONVIVE COM COMPANHEIRA (O) E FILHO (S)', 1, 
-                             ifelse(is.na(dados$EstadoCivil1), NA, 0))
-dados$EstadoCivil_2 = ifelse(dados$EstadoCivil1 == '2) CONVIVE COM COMPANHEIRA(O), COM LACOS CONJUGAIS E SEM FILHOS', 1, 
-                             ifelse(is.na(dados$EstadoCivil1), NA, 0))
-dados$EstadoCivil_3 = ifelse(dados$EstadoCivil1 == '3) CONVIVE C/ COMPANHEIRA(O),C/ FILHO(S) E/OU OUTROS FAMILIARES', 1, 
-                             ifelse(is.na(dados$EstadoCivil1), NA, 0))
-dados$EstadoCivil_4 = ifelse(dados$EstadoCivil1 == '4) CONVIVE COM FAMILIA (RES), SEM COMPANHEIRA (O)', 1, 
-                             ifelse(is.na(dados$EstadoCivil1), NA, 0))
-dados$EstadoCivil_5 = ifelse(dados$EstadoCivil1 == '5) CONVIVE C/ OUTRA(S) PESSOA(S),S/LACOS CONSANG E/OU CONJUGAIS', 1, 
-                             ifelse(is.na(dados$EstadoCivil1), NA, 0))
-dados$EstadoCivil_6 = ifelse(dados$EstadoCivil1 == '6) VIVE SO', 1, 
-                             ifelse(is.na(dados$EstadoCivil1), NA, 0))
-
-dados$Sexo_F = ifelse(dados$Sexo1 == 'FEMININO', 1, ifelse(is.na(dados$Sexo1), NA, 0))
-
-dados$Situacao_Moradia_ALUGADO = ifelse(dados$Situacao_Moradia1 == 'ALUGADO', 1, ifelse(is.na(dados$Situacao_Moradia1), NA, 0))
-dados$Situacao_Moradia_ARRENDADO = ifelse(dados$Situacao_Moradia1 == 'ARRENDADO', 1, ifelse(is.na(dados$Situacao_Moradia1), NA, 0))
-dados$Situacao_Moradia_CEDIDO = ifelse(dados$Situacao_Moradia1 == 'CEDIDO', 1, ifelse(is.na(dados$Situacao_Moradia1), NA, 0))
-dados$Situacao_Moradia_FINANCIADO = ifelse(dados$Situacao_Moradia1 == 'FINANCIADO', 1, ifelse(is.na(dados$Situacao_Moradia1), NA, 0))
-dados$Situacao_Moradia_OCUPACAO = ifelse(dados$Situacao_Moradia1 == 'OCUPAÇÃO', 1, ifelse(is.na(dados$Situacao_Moradia1), NA, 0))
-dados$Situacao_Moradia_OUTRA = ifelse(dados$Situacao_Moradia1 == 'OUTRA', 1, ifelse(is.na(dados$Situacao_Moradia1), NA, 0))
-dados$Situacao_Moradia_PROPRIO = ifelse(dados$Situacao_Moradia1 == 'PRÓPRIO', 1, ifelse(is.na(dados$Situacao_Moradia1), NA, 0))
-dados$Situacao_Moradia_SITUACAO_DE_RUA = ifelse(dados$Situacao_Moradia1 == 'SITUAÇÃO DE RUA', 1, ifelse(is.na(dados$Situacao_Moradia1), NA, 0))
-
-dados$Abastecimento_Agua_CISTERNA = ifelse(dados$Abastecimento_Agua1 == 'CISTERNA', 1, ifelse(is.na(dados$Abastecimento_Agua1), NA, 0))
-dados$Abastecimento_Agua_OUTRO = ifelse(dados$Abastecimento_Agua1 == 'OUTRO', 1, ifelse(is.na(dados$Abastecimento_Agua1), NA, 0))
-dados$Abastecimento_Agua_REDE_ENCANADA = ifelse(dados$Abastecimento_Agua1 == 'REDE ENCANADA ATÉ O DOMICÍLIO', 1, ifelse(is.na(dados$Abastecimento_Agua1), NA, 0))
-
-dados$Consumo_Agua_CLORADA = ifelse(dados$Consumo_Agua1 == 'CLORADA', 1, ifelse(is.na(dados$Consumo_Agua1), NA, 0))
-dados$Consumo_Agua_FERVIDA = ifelse(dados$Consumo_Agua1 == 'FERVIDA', 1, ifelse(is.na(dados$Consumo_Agua1), NA, 0))
-dados$Consumo_Agua_FILTRADA = ifelse(dados$Consumo_Agua1 == 'FILTRADA', 1, ifelse(is.na(dados$Consumo_Agua1), NA, 0))
-dados$Consumo_Agua_SEM_TRATAMENTO = ifelse(dados$Consumo_Agua1 == 'SEM TRATAMENTO', 1, ifelse(is.na(dados$Consumo_Agua1), NA, 0))
-
-dados$Destino_Lixo_CEU_ABERTO = ifelse(dados$Destino_Lixo1 == 'CÉU ABERTO', 1, ifelse(is.na(dados$Destino_Lixo1), NA, 0))
-dados$Destino_Lixo_COLETADO = ifelse(dados$Destino_Lixo1 == 'COLETADO', 1, ifelse(is.na(dados$Destino_Lixo1), NA, 0))
-dados$Destino_Lixo_OUTRO = ifelse(dados$Destino_Lixo1 == 'OUTRO', 1, ifelse(is.na(dados$Destino_Lixo1), NA, 0))
-dados$Destino_Lixo_QUEIMADO_ENTERRADO = ifelse(dados$Destino_Lixo1 == 'QUEIMADO / ENTERRADO', 1, ifelse(is.na(dados$Destino_Lixo1), NA, 0))
-
-dados$Regional_Atendimento_BARREIRO = ifelse(dados$Regional_Atendimento1 == 'BARREIRO', 1, ifelse(is.na(dados$Regional_Atendimento1), NA, 0))
-dados$Regional_Atendimento_CENTRO_SUL = ifelse(dados$Regional_Atendimento1 == 'CENTRO SUL', 1, ifelse(is.na(dados$Regional_Atendimento1), NA, 0))
-dados$Regional_Atendimento_LESTE = ifelse(dados$Regional_Atendimento1 == 'LESTE', 1, ifelse(is.na(dados$Regional_Atendimento1), NA, 0))
-dados$Regional_Atendimento_NORDESTE = ifelse(dados$Regional_Atendimento1 == 'NORDESTE', 1, ifelse(is.na(dados$Regional_Atendimento1), NA, 0))
-dados$Regional_Atendimento_NOROESTE = ifelse(dados$Regional_Atendimento1 == 'NOROESTE', 1, ifelse(is.na(dados$Regional_Atendimento1), NA, 0))
-dados$Regional_Atendimento_NORTE = ifelse(dados$Regional_Atendimento1 == 'NORTE', 1, ifelse(is.na(dados$Regional_Atendimento1), NA, 0))
-dados$Regional_Atendimento_OESTE = ifelse(dados$Regional_Atendimento1 == 'OESTE', 1, ifelse(is.na(dados$Regional_Atendimento1), NA, 0))
-dados$Regional_Atendimento_PAMPULHA = ifelse(dados$Regional_Atendimento1 == 'PAMPULHA', 1, ifelse(is.na(dados$Regional_Atendimento1), NA, 0))
-dados$Regional_Atendimento_VENDA_NOVA = ifelse(dados$Regional_Atendimento1 == 'VENDA NOVA', 1, ifelse(is.na(dados$Regional_Atendimento1), NA, 0))
-
-dados_modelos = dados %>% drop_na(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-                                  Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-                                  Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-                                  Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-                                  Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-                                  Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-                                  Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-                                  Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-                                  Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-                                  Regional_Atendimento_VENDA_NOVA)
-dados %>% dim
-dados_modelos %>% dim
-
-# write.xlsx(dados_modelos, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/Dados para modelos.xlsx', 
-#            rowNames = F)
-
-####=====================================
-#### Divisão dos dados em treino e teste
-####=====================================
 ####========
 #### QtdCID
 ####========
-dados_modelos_QtdCID = dados_modelos %>% drop_na(QtdCID)
-TesteDeNormalidade(dados_modelos_QtdCID$QtdCID)
+treino_QtdCID = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdCID.xlsx", sheet = 1)
+teste_QtdCID = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdCID.xlsx", sheet = 1)
 
-set.seed(13)
-split_dados_modelos_QtdCID = stratified(dados_modelos_QtdCID,
-                                        c("EstadoCivil1","Sexo1","Situacao_Moradia1","Abastecimento_Agua1",
-                                          "Consumo_Agua1","Destino_Lixo1","Regional_Atendimento1"), 0.75, 
-                                        keep.rownames = TRUE, bothSets = TRUE)
+treino_QtdCID$QtdCID = treino_QtdCID$QtdCID + 0.001 
+teste_QtdCID$QtdCID = teste_QtdCID$QtdCID + 0.001 
 
-dados_treino_QtdCID = split_dados_modelos_QtdCID$SAMP1 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,QtdCID)
+mod_QtdCID1 = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + Situacao_Moradia1 + 
+      Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + QtdAtendimentosMedicos +
+      Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID1)
+car::vif(mod_QtdCID1)
 
-dados_teste_QtdCID = split_dados_modelos_QtdCID$SAMP2 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,QtdCID)
+#Num_Membros_Familia1
+mod_QtdCID2 = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + Energia_Eletrica1 + Situacao_Moradia1 + 
+                    Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + QtdAtendimentosMedicos +
+                    Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID2)
 
-# write.xlsx(dados_treino_QtdCID, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/treino QtdCID.xlsx', 
-#            rowNames = F)
-# write.xlsx(dados_teste_QtdCID, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/teste QtdCID.xlsx', 
-#            rowNames = F)
+#Energia_Eletrica1
+mod_QtdCID3 = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + Situacao_Moradia1 + 
+                    Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + QtdAtendimentosMedicos +
+                    Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID3)
 
-# RandomForest1 = randomForest(formula = QtdCID ~ Idade1 + EstadoCivil_1 + EstadoCivil_2 + EstadoCivil_3 + EstadoCivil_4 + EstadoCivil_5 + EstadoCivil_6 + 
-#                                Sexo_F + Num_Membros_Familia1 + Energia_Eletrica1 + Situacao_Moradia_ALUGADO + Situacao_Moradia_ARRENDADO + 
-#                                Situacao_Moradia_CEDIDO + Situacao_Moradia_FINANCIADO + Situacao_Moradia_OCUPACAO + Situacao_Moradia_OUTRA + 
-#                                Situacao_Moradia_PROPRIO + Situacao_Moradia_SITUACAO_DE_RUA + Abastecimento_Agua_CISTERNA + Abastecimento_Agua_OUTRO + 
-#                                Consumo_Agua_CLORADA + Consumo_Agua_FERVIDA + Consumo_Agua_FILTRADA + Consumo_Agua_SEM_TRATAMENTO + 
-#                                Destino_Lixo_CEU_ABERTO + Destino_Lixo_COLETADO + Destino_Lixo_OUTRO + Destino_Lixo_QUEIMADO_ENTERRADO + 
-#                                Numero_Comodos1 + QtdAtendimentosMedicos + Regional_Atendimento_BARREIRO + Regional_Atendimento_CENTRO_SUL + 
-#                                Regional_Atendimento_LESTE + Regional_Atendimento_NORDESTE + Regional_Atendimento_NOROESTE + 
-#                                Regional_Atendimento_NORTE + Regional_Atendimento_OESTE + Regional_Atendimento_PAMPULHA + 
-#                                Regional_Atendimento_VENDA_NOVA, data = dados_treino1, #ntree= 500,
-#                              importance = TRUE, proximity = TRUE)
+#Abastecimento_Agua1
+mod_QtdCID4 = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + Situacao_Moradia1 + 
+                    Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + QtdAtendimentosMedicos +
+                    Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID4)
+
+#Idade1
+mod_QtdCID5 = glm(QtdCID ~ EstadoCivil1 + Sexo1 + Situacao_Moradia1 + 
+                    Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + QtdAtendimentosMedicos +
+                    Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID5)
+TabelaModelo(mod_QtdCID5)
+MetricasRegressao(mod_QtdCID5,teste_QtdCID,teste_QtdCID$QtdCID)
+1-pchisq(sum(residuals(mod_QtdCID5, type = 'pearson')^2), 127299)
+car::influenceIndexPlot(mod_QtdCID5)
+par(mfrow = c(2,2));plot(mod_QtdCID5)
+
+#jpeg("Tabela 23.jpg", width = 700, height = 500, quality = 100)
+ggplot(treino_QtdCID %>% select(EstadoCivil1,Sexo1,Situacao_Moradia1,Consumo_Agua1,Destino_Lixo1,Numero_Comodos1,QtdAtendimentosMedicos,
+                                Regional_Atendimento1) %>% na.omit(),
+       aes(x = fitted(mod_QtdCID5), y = residuals(mod_QtdCID5))) +
+  geom_point() + labs(x = "Valores ajustados", y = "Resíduos") +
+  theme_bw() + geom_hline(yintercept = 0, color = 'red') + 
+  theme(text=element_text(size = 20), plot.title = element_text(hjust = 0.5),
+        #axis.text.x = element_text(angle = 50, vjust = 1, hjust=1),
+        legend.position = "none")#+ ggtitle("Resíduos vs valores ajustados")
+dev.off()
+
+####==================
+#### Sem atendimentos
+####==================
+mod_QtdCID1_SA = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + Situacao_Moradia1 + 
+                    Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 +
+                    Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID1_SA)
+car::vif(mod_QtdCID1_SA)
+
+#Num_Membros_Familia1
+mod_QtdCID2_SA = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + Energia_Eletrica1 + Situacao_Moradia1 + 
+                       Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 +
+                       Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID2_SA)
+
+#Energia_Eletrica1
+mod_QtdCID3_SA = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + Situacao_Moradia1 + 
+                       Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 +
+                       Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID3_SA)
+
+#Situacao_Moradia1
+mod_QtdCID4_SA = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + 
+                       Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 +
+                       Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID4_SA)
+
+#Abastecimento_Agua1
+mod_QtdCID5_SA = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + 
+                       Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 +
+                       Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+summary(mod_QtdCID5_SA)
+MetricasRegressao(mod_QtdCID5_SA,teste_QtdCID,teste_QtdCID$QtdCID)
+1-pchisq(sum(residuals(mod_QtdCID5_SA, type = 'pearson')^2), 127306)
 
 ####=================
 #### QtdMedicamentos
 ####=================
-dados_modelos_QtdMedicamentos = dados_modelos %>% drop_na(QtdMedicamentos)
-TesteDeNormalidade(dados_modelos_QtdMedicamentos$QtdMedicamentos)
+treino_QtdMedicamentos = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdMedicamentos.xlsx", sheet = 1)
+teste_QtdMedicamentos = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdMedicamentos.xlsx", sheet = 1)
 
-set.seed(13)
-split_dados_modelos_QtdMedicamentos = stratified(dados_modelos_QtdMedicamentos,
-                                                 c("EstadoCivil1","Sexo1","Situacao_Moradia1","Abastecimento_Agua1",
-                                                   "Consumo_Agua1","Destino_Lixo1","Regional_Atendimento1"), 0.75, 
-                                                 keep.rownames = TRUE, bothSets = TRUE)
+treino_QtdMedicamentos$QtdMedicamentos = treino_QtdMedicamentos$QtdMedicamentos + 0.01 
+teste_QtdMedicamentos$QtdMedicamentos = teste_QtdMedicamentos$QtdMedicamentos + 0.01 
 
-dados_treino_QtdMedicamentos = split_dados_modelos_QtdMedicamentos$SAMP1 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,QtdMedicamentos)
+mod_QtdMedicamentos1 = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+                             Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+                             QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdMedicamentos, family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos1)
+car::vif(mod_QtdMedicamentos1)
 
-dados_teste_QtdMedicamentos = split_dados_modelos_QtdMedicamentos$SAMP2 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,QtdMedicamentos)
+#Num_Membros_Familia1
+mod_QtdMedicamentos2 = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + Energia_Eletrica1 + 
+                             Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+                             QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdMedicamentos, family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos2)
 
-# write.xlsx(dados_treino_QtdMedicamentos, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/treino QtdMedicamentos.xlsx', 
-#            rowNames = F)
-# write.xlsx(dados_teste_QtdMedicamentos, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/teste QtdMedicamentos.xlsx', 
-#            rowNames = F)
+#Abastecimento_Agua1
+mod_QtdMedicamentos3 = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + Energia_Eletrica1 + 
+                             Situacao_Moradia1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+                             QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdMedicamentos, family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos3)
+
+#Energia_Eletrica1
+mod_QtdMedicamentos4 = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + 
+                             Situacao_Moradia1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+                             QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdMedicamentos, family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos4)
+
+#Destino_Lixo1
+mod_QtdMedicamentos5 = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + 
+                             Situacao_Moradia1 + Consumo_Agua1 + Numero_Comodos1 + 
+                             QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdMedicamentos, family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos5)
+TabelaModelo(mod_QtdMedicamentos5)
+MetricasRegressao(mod_QtdMedicamentos5,teste_QtdMedicamentos,teste_QtdMedicamentos$QtdMedicamentos)
+1-pchisq(sum(residuals(mod_QtdMedicamentos5, type = 'pearson')^2), 127299)
+
+####==================
+#### Sem atendimentos
+####==================
+mod_QtdMedicamentos1_SA = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+                                Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+                                Regional_Atendimento1, data = treino_QtdMedicamentos %>% mutate(QtdMedicamentos = QtdMedicamentos+0.01), 
+                              family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos1_SA)
+car::vif(mod_QtdMedicamentos1_SA)
+
+#Abastecimento_Agua1
+mod_QtdMedicamentos2_SA = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+                                Situacao_Moradia1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+                                Regional_Atendimento1, data = treino_QtdMedicamentos %>% mutate(QtdMedicamentos = QtdMedicamentos+0.01), 
+                              family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos2_SA)
+
+#Energia_Eletrica1
+mod_QtdMedicamentos3_SA = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + 
+                                Situacao_Moradia1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+                                Regional_Atendimento1, data = treino_QtdMedicamentos %>% mutate(QtdMedicamentos = QtdMedicamentos+0.01), 
+                              family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos3_SA)
+
+#Destino_Lixo1
+mod_QtdMedicamentos4_SA = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + 
+                                Situacao_Moradia1 + Consumo_Agua1 + Numero_Comodos1 + 
+                                Regional_Atendimento1, data = treino_QtdMedicamentos %>% mutate(QtdMedicamentos = QtdMedicamentos+0.01), 
+                              family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos4_SA)
+
+#Num_Membros_Familia1
+mod_QtdMedicamentos5_SA = glm(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + 
+                                Situacao_Moradia1 + Consumo_Agua1 + Numero_Comodos1 + 
+                                Regional_Atendimento1, data = treino_QtdMedicamentos %>% mutate(QtdMedicamentos = QtdMedicamentos+0.01), 
+                              family = Gamma(link = 'log'))
+summary(mod_QtdMedicamentos5_SA)
+TabelaModelo(mod_QtdMedicamentos5_SA)
+MetricasRegressao(mod_QtdMedicamentos5_SA,teste_QtdMedicamentos,teste_QtdMedicamentos$QtdMedicamentos)
+1-pchisq(sum(residuals(mod_QtdMedicamentos5_SA, type = 'pearson')^2), 127302)
 
 ####=====================
 #### Qtd_ENCAMINHAMENTOS
 ####=====================
-dados_modelos_QtdENCAMINHAMENTOS = dados_modelos %>% drop_na(Qtd_ENCAMINHAMENTOS)
-TesteDeNormalidade(dados_modelos_QtdENCAMINHAMENTOS$Qtd_ENCAMINHAMENTOS)
+treino_QtdENCAMINHAMENTOS = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdENCAMINHAMENTOS.xlsx", sheet = 1)
+teste_QtdENCAMINHAMENTOS = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdENCAMINHAMENTOS.xlsx", sheet = 1)
 
-set.seed(13)
-split_dados_modelos_QtdENCAMINHAMENTOS = stratified(dados_modelos_QtdENCAMINHAMENTOS,
-                                                    c("EstadoCivil1","Sexo1","Situacao_Moradia1","Abastecimento_Agua1",
-                                                      "Consumo_Agua1","Destino_Lixo1","Regional_Atendimento1"), 0.75, 
-                                                    keep.rownames = TRUE, bothSets = TRUE)
+mod_QtdENCAMINHAMENTOS1 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+                                Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+                                QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS1)
+car::vif(mod_QtdENCAMINHAMENTOS1)
 
-dados_treino_QtdENCAMINHAMENTOS = split_dados_modelos_QtdENCAMINHAMENTOS$SAMP1 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,Qtd_ENCAMINHAMENTOS)
+#Destino_Lixo1
+mod_QtdENCAMINHAMENTOS2 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+                                Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Numero_Comodos1 + 
+                                QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS2)
 
-dados_teste_QtdENCAMINHAMENTOS = split_dados_modelos_QtdENCAMINHAMENTOS$SAMP2 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,Qtd_ENCAMINHAMENTOS)
+#Num_Membros_Familia1
+mod_QtdENCAMINHAMENTOS3 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Sexo1 + Energia_Eletrica1 + 
+                                Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Numero_Comodos1 + 
+                                QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS3)
 
-# write.xlsx(dados_treino_QtdENCAMINHAMENTOS, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/treino QtdENCAMINHAMENTOS.xlsx', 
-#            rowNames = F)
-# write.xlsx(dados_teste_QtdENCAMINHAMENTOS, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/teste QtdENCAMINHAMENTOS.xlsx', 
-#            rowNames = F)
+#Consumo_Agua1
+mod_QtdENCAMINHAMENTOS4 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Sexo1 + Energia_Eletrica1 + 
+                                Situacao_Moradia1 + Abastecimento_Agua1 + Numero_Comodos1 + 
+                                QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS4)
+
+#Energia_Eletrica1
+mod_QtdENCAMINHAMENTOS5 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Sexo1 + 
+                                Situacao_Moradia1 + Abastecimento_Agua1 + Numero_Comodos1 + 
+                                QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS5)
+
+#Situacao_Moradia1
+mod_QtdENCAMINHAMENTOS6 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Sexo1 + 
+                                Abastecimento_Agua1 + Numero_Comodos1 + 
+                                QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS6)
+
+#EstadoCivil1
+mod_QtdENCAMINHAMENTOS7 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + Sexo1 + 
+                                Abastecimento_Agua1 + Numero_Comodos1 + 
+                                QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS7)
+
+#Abastecimento_Agua1
+mod_QtdENCAMINHAMENTOS8 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + Sexo1 + 
+                                Numero_Comodos1 + 
+                                QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS8)
+
+#Numero_Comodos1
+mod_QtdENCAMINHAMENTOS9 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + Sexo1 + 
+                                QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS9)
+TabelaModelo(mod_QtdENCAMINHAMENTOS9)
+MetricasRegressao(mod_QtdENCAMINHAMENTOS9,teste_QtdENCAMINHAMENTOS,teste_QtdENCAMINHAMENTOS$Qtd_ENCAMINHAMENTOS)
+1-pchisq(sum(residuals(mod_QtdENCAMINHAMENTOS9, type = 'pearson')^2), 127302)
+
+####==================
+#### Sem atendimentos
+####==================
+mod_QtdENCAMINHAMENTOS1_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+                                   Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+                                   Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS1_SA)
+car::vif(mod_QtdENCAMINHAMENTOS1_SA)
+
+#Destino_Lixo1
+mod_QtdENCAMINHAMENTOS2_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+                                   Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Numero_Comodos1 + 
+                                   Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS2_SA)
+
+#Sexo1
+mod_QtdENCAMINHAMENTOS3_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+                                   Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Numero_Comodos1 + 
+                                   Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS3_SA)
+
+#Num_Membros_Familia1
+mod_QtdENCAMINHAMENTOS4_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + Energia_Eletrica1 + 
+                                   Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Numero_Comodos1 + 
+                                   Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS4_SA)
+
+#Energia_Eletrica1
+mod_QtdENCAMINHAMENTOS5_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + 
+                                   Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Numero_Comodos1 + 
+                                   Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS5_SA)
+
+#Consumo_Agua1
+mod_QtdENCAMINHAMENTOS6_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + 
+                                   Situacao_Moradia1 + Abastecimento_Agua1 + Numero_Comodos1 + 
+                                   Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS6_SA)
+
+#Situacao_Moradia1
+mod_QtdENCAMINHAMENTOS7_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + 
+                                   Abastecimento_Agua1 + Numero_Comodos1 + 
+                                   Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS7_SA)
+
+#Abastecimento_Agua1
+mod_QtdENCAMINHAMENTOS8_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + 
+                                   Numero_Comodos1 + 
+                                   Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS8_SA)
+
+#Numero_Comodos1
+mod_QtdENCAMINHAMENTOS9_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + EstadoCivil1 + 
+                                   Regional_Atendimento1, data = treino_QtdENCAMINHAMENTOS, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTOS9_SA)
+TabelaModelo(mod_QtdENCAMINHAMENTOS9_SA)
+MetricasRegressao(mod_QtdENCAMINHAMENTOS9_SA,teste_QtdENCAMINHAMENTOS,teste_QtdENCAMINHAMENTOS$Qtd_ENCAMINHAMENTOS)
+1-pchisq(sum(residuals(mod_QtdENCAMINHAMENTOS9_SA, type = 'pearson')^2), 127302)
 
 ####=======================================
 #### Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE
 ####=======================================
-dados_modelos_Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE = dados_modelos %>% drop_na(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE)
-TesteDeNormalidade(dados_modelos_Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE$Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE)
+treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdENCAMINHAMENTO_PARA_ESPECIALIDADE.xlsx", sheet = 1)
+teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdENCAMINHAMENTO_PARA_ESPECIALIDADE.xlsx", sheet = 1)
 
-set.seed(13)
-split_dados_modelos_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE = stratified(dados_modelos_Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE,
-                                                                      c("EstadoCivil1","Sexo1","Situacao_Moradia1","Abastecimento_Agua1",
-                                                                        "Consumo_Agua1","Destino_Lixo1","Regional_Atendimento1"), 0.75, 
-                                                                      keep.rownames = TRUE, bothSets = TRUE)
+treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE$Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE$Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE + 0.01 
+teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE$Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE = teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE$Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE + 0.01 
 
-dados_treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE = split_dados_modelos_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE$SAMP1 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE)
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE1 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+        Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE1)
+car::vif(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE1)
 
-dados_teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE = split_dados_modelos_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE$SAMP2 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE)
+#Numero_Comodos1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE2 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+        Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE2)
 
-# write.xlsx(dados_treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/treino QtdENCAMINHAMENTO_PARA_ESPECIALIDADE.xlsx', 
-#            rowNames = F)
-# write.xlsx(dados_teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/teste QtdENCAMINHAMENTO_PARA_ESPECIALIDADE.xlsx', 
-#            rowNames = F)
+#Abastecimento_Agua1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE3 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+        Situacao_Moradia1 + Consumo_Agua1 + Destino_Lixo1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE3)
+
+#Energia_Eletrica1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE4 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + 
+        Situacao_Moradia1 + Consumo_Agua1 + Destino_Lixo1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE4)
+
+#Num_Membros_Familia1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE5 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + 
+        Situacao_Moradia1 + Consumo_Agua1 + Destino_Lixo1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE5)
+
+#Destino_Lixo1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE6 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + 
+        Situacao_Moradia1 + Consumo_Agua1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE6)
+
+#Sexo1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + 
+        Situacao_Moradia1 + Consumo_Agua1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7)
+
+#Situacao_Moradia1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE8 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + 
+        Consumo_Agua1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE8)
+
+#EstadoCivil1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE9 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + 
+        Consumo_Agua1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE9)
+TabelaModelo(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE9)
+MetricasRegressao(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE9,teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE,
+                  teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE$Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE)
+1-pchisq(sum(residuals(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE9, type = 'pearson')^2), 127302)
+
+####==================
+#### Sem atendimentos
+####==================
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE1_SA = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+        Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + 
+        Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE1_SA)
+
+#Numero_Comodos1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE2_SA = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+        Situacao_Moradia1 + Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + 
+        Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE2_SA)
+
+#Abastecimento_Agua1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE3_SA = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + 
+        Situacao_Moradia1 + Consumo_Agua1 + Destino_Lixo1 + 
+        Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE3_SA)
+
+#Energia_Eletrica1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE4_SA = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + 
+        Situacao_Moradia1 + Consumo_Agua1 + Destino_Lixo1 + 
+        Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE4_SA)
+
+#Destino_Lixo1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE5_SA = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + 
+        Situacao_Moradia1 + Consumo_Agua1 + 
+        Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE5_SA)
+
+#Situacao_Moradia1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE6_SA = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + 
+        Consumo_Agua1 + 
+        Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE6_SA)
+
+#Num_Membros_Familia1
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7_SA = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Sexo1 + 
+        Consumo_Agua1 + 
+        Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = Gamma(link = 'log'))
+summary(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7_SA)
+TabelaModelo(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7_SA)
+MetricasRegressao(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7_SA,teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE,
+                  teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE$Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE)
+1-pchisq(sum(residuals(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7_SA, type = 'pearson')^2), 127302)
 
 ####======================================
 #### Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL
 ####======================================
 dados_modelos_Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL = dados_modelos %>% drop_na(Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL)
-TesteDeNormalidade(dados_modelos_Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL$Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL)
-
-set.seed(13)
-split_dados_modelos_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL = stratified(dados_modelos_Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL,
-                                                                     c("EstadoCivil1","Sexo1","Situacao_Moradia1","Abastecimento_Agua1",
-                                                                       "Consumo_Agua1","Destino_Lixo1","Regional_Atendimento1"), 0.75, 
-                                                                     keep.rownames = TRUE, bothSets = TRUE)
-
-dados_treino_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL = split_dados_modelos_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL$SAMP1 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL)
-
-dados_teste_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL = split_dados_modelos_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL$SAMP2 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL)
-
-# write.xlsx(dados_treino_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/treino QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL.xlsx', 
-#            rowNames = F)
-# write.xlsx(dados_teste_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/teste QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL.xlsx', 
-#            rowNames = F)
 
 ####==================================
 #### Qtd_ENCAMINHAMENTO_PARA_URGENCIA
 ####==================================
 dados_modelos_Qtd_ENCAMINHAMENTO_PARA_URGENCIA = dados_modelos %>% drop_na(Qtd_ENCAMINHAMENTO_PARA_URGENCIA)
-TesteDeNormalidade(dados_modelos_Qtd_ENCAMINHAMENTO_PARA_URGENCIA$Qtd_ENCAMINHAMENTO_PARA_URGENCIA)
-
-set.seed(13)
-split_dados_modelos_QtdENCAMINHAMENTO_PARA_URGENCIA = stratified(dados_modelos_Qtd_ENCAMINHAMENTO_PARA_URGENCIA,
-                                                                 c("EstadoCivil1","Sexo1","Situacao_Moradia1","Abastecimento_Agua1",
-                                                                   "Consumo_Agua1","Destino_Lixo1","Regional_Atendimento1"), 0.75, 
-                                                                 keep.rownames = TRUE, bothSets = TRUE)
-
-dados_treino_QtdENCAMINHAMENTO_PARA_URGENCIA = split_dados_modelos_QtdENCAMINHAMENTO_PARA_URGENCIA$SAMP1 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,Qtd_ENCAMINHAMENTO_PARA_URGENCIA)
-
-dados_teste_QtdENCAMINHAMENTO_PARA_URGENCIA = split_dados_modelos_QtdENCAMINHAMENTO_PARA_URGENCIA$SAMP2 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,Qtd_ENCAMINHAMENTO_PARA_URGENCIA)
-
-# write.xlsx(dados_treino_QtdENCAMINHAMENTO_PARA_URGENCIA, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/treino QtdENCAMINHAMENTO_PARA_URGENCIA.xlsx', 
-#            rowNames = F)
-# write.xlsx(dados_teste_QtdENCAMINHAMENTO_PARA_URGENCIA, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/teste QtdENCAMINHAMENTO_PARA_URGENCIA.xlsx', 
-#            rowNames = F)
 
 ####=====================================================================
 #### Índice de risco que envolva QtdCID e QtdMedicamentos (normalizados)
