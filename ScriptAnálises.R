@@ -230,6 +230,9 @@ MetricasRegressao = function(modelo,dados_teste,var_resposta_teste){
 ####========
 #### QtdCID
 ####========
+####=======
+#### Geral
+####=======
 treino_QtdCID = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdCID.xlsx", sheet = 1)
 teste_QtdCID = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdCID.xlsx", sheet = 1)
 
@@ -320,6 +323,9 @@ MetricasRegressao(mod_QtdCID5_SA,teste_QtdCID,teste_QtdCID$QtdCID)
 ####=================
 #### QtdMedicamentos
 ####=================
+####=======
+#### Geral
+####=======
 treino_QtdMedicamentos = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdMedicamentos.xlsx", sheet = 1)
 teste_QtdMedicamentos = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdMedicamentos.xlsx", sheet = 1)
 
@@ -403,6 +409,9 @@ MetricasRegressao(mod_QtdMedicamentos5_SA,teste_QtdMedicamentos,teste_QtdMedicam
 ####=====================
 #### Qtd_ENCAMINHAMENTOS
 ####=====================
+####=======
+#### Geral
+####=======
 treino_QtdENCAMINHAMENTOS = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdENCAMINHAMENTOS.xlsx", sheet = 1)
 teste_QtdENCAMINHAMENTOS = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdENCAMINHAMENTOS.xlsx", sheet = 1)
 
@@ -524,6 +533,9 @@ MetricasRegressao(mod_QtdENCAMINHAMENTOS9_SA,teste_QtdENCAMINHAMENTOS,teste_QtdE
 ####=======================================
 #### Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE
 ####=======================================
+####=======
+#### Geral
+####=======
 treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdENCAMINHAMENTO_PARA_ESPECIALIDADE.xlsx", sheet = 1)
 teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdENCAMINHAMENTO_PARA_ESPECIALIDADE.xlsx", sheet = 1)
 
@@ -655,12 +667,21 @@ MetricasRegressao(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7_SA,teste_QtdENCAMINH
 ####======================================
 #### Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL
 ####======================================
-dados_modelos_Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL = dados_modelos %>% drop_na(Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL)
+####=======
+#### Geral
+####=======
+treino_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL.xlsx", sheet = 1)
+teste_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL.xlsx", sheet = 1)
+
+DescritivaCat(treino_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL$Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL)
 
 ####==================================
 #### Qtd_ENCAMINHAMENTO_PARA_URGENCIA
 ####==================================
-dados_modelos_Qtd_ENCAMINHAMENTO_PARA_URGENCIA = dados_modelos %>% drop_na(Qtd_ENCAMINHAMENTO_PARA_URGENCIA)
+treino_QtdENCAMINHAMENTO_PARA_URGENCIA = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdENCAMINHAMENTO_PARA_URGENCIA.xlsx", sheet = 1)
+teste_QtdENCAMINHAMENTO_PARA_URGENCIA = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdENCAMINHAMENTO_PARA_URGENCIA.xlsx", sheet = 1)
+
+DescritivaCat(treino_QtdENCAMINHAMENTO_PARA_URGENCIA$Qtd_ENCAMINHAMENTO_PARA_URGENCIA)
 
 ####=====================================================================
 #### Índice de risco que envolva QtdCID e QtdMedicamentos (normalizados)
