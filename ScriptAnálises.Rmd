@@ -1,0 +1,209 @@
+---
+title: "Trabalho Humberto"
+output: html_notebook
+---
+
+# Análise de dados
+### César Macieira
+
+```{r, include=FALSE}
+## Preparando o R para análise
+rm(list=ls(all=T))#Limpar ambiente/histórico
+#setwd("C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto")#Diretório
+setwd('C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos')
+```
+
+```{r, include=FALSE}
+## Instalando e carregando pacotes
+if(!require(MASS)){ install.packages("MASS"); require(MASS)}#Ler e exportar excel
+if(!require(openxlsx)){ install.packages("openxlsx"); require(openxlsx)}#Ler e exportar excel
+if(!require(purrr)){ install.packages("purrr"); require(purrr)}#Programação funcional
+if(!require(tidyverse)){ install.packages("tidyverse"); require(tidyverse)}#Manipulação de dados
+#if(!require(stringr)){ install.packages("stringr"); require(stringr)}#Strings
+if(!require(ggplot2)){ install.packages("ggplot2"); require(ggplot2)}
+if(!require(MLmetrics)){ install.packages("MLmetrics"); require(MLmetrics)}
+if(!require(pscl)){ install.packages("pscl"); require(pscl)}
+```
+
+
+```{r, include=FALSE}
+## Funções
+DescritivaCat = function(x){
+  tabela = cbind(table(x), prop.table(table(x)))
+  colnames(tabela) = c("Freq. Absoluta (N)", "Freq. Relativa (%)")
+  return(tabela)
+}
+
+DescritivaNum = function(x, more = F) {
+  stats = list();
+  clean.x = x[!is.na(x)]
+  stats$N_validos = round(length(clean.x),3)
+  stats$Média = round(mean(clean.x),3)
+  stats$Var = round(var(clean.x),3)
+  stats$D.P = round(sd(clean.x),3)
+  stats$Mín. = round(min(clean.x),3)
+  stats$Q1 = round(fivenum(clean.x)[2],3)
+  stats$Q2 = round(fivenum(clean.x)[3],3)
+  stats$Q3 = round(fivenum(clean.x)[4],3)
+  stats$Máx. = round(max(clean.x),3)
+  t1 = unlist(stats)
+  names(t1) = c("N","Média","Variância","D.P.","Mínimo","1ºQ","2ºQ","3ºQ","Máximo")
+  t1
+}
+
+basic.stats = function(x, more = F) {
+  stats = list()
+  clean.x = x[!is.na(x)]
+  stats$N_validos = round(length(clean.x),3)
+  stats$Média = round(mean(clean.x),3)
+  stats$Var = round(var(clean.x),3)
+  stats$D.P = round(sd(clean.x),3)
+  stats$E.P = round(sd(clean.x)/sqrt(length(clean.x)),3)
+  stats$Min = round(min(clean.x),3)
+  stats$Q1 = round(fivenum(clean.x)[2],3)
+  stats$Q2 = round(fivenum(clean.x)[3],3)
+  stats$Q3 = round(fivenum(clean.x)[4],3)
+  stats$Max = round(max(clean.x),3)
+  t1 = unlist(stats)
+  names(t1) = c("N válidos", "Média", "Variância", "D.P.", "E.P.", "Mínimo", "1ºQ", "2ºQ", "3ºQ", "Máximo")
+  t1
+}
+
+TabelaModelo = function(modelo,casasdecimaisExpB=F){
+  options(OutDec=",")
+  if(casasdecimaisExpB == F){
+    Tabela = data.frame("Variáveis" = rownames(summary(modelo)$coefficients),
+                        "β" = summary(modelo)$coefficients[,1],
+                        "Exp β" = exp(summary(modelo)$coefficients[,1]),
+                        "Alteração" = (exp(summary(modelo)$coefficients[,1]) - 1),
+                        "I.C. (Exp β)" = paste0("[",round(exp(summary(modelo)$coefficients[,1]-1.96*summary(modelo)$coefficients[,2]),3),"; ",
+                                                round(exp(summary(modelo)$coefficients[,1]+1.96*summary(modelo)$coefficients[,2]),3),"]"),
+                        "I.C. (Alteração)" = paste0("[",round((exp(summary(modelo)$coefficients[,1]-1.96*summary(modelo)$coefficients[,2])-1)*100,2),"%; ",
+                                                    round((exp(summary(modelo)$coefficients[,1]+1.96*summary(modelo)$coefficients[,2])-1)*100,2),"%]"),
+                        "Valor-p" = round(summary(modelo)$coefficients[,4],4))
+  }else{
+    Tabela = data.frame("Variáveis" = rownames(summary(modelo)$coefficients),
+                        "β" = summary(modelo)$coefficients[,1],
+                        "Exp β" = round(exp(summary(modelo)$coefficients[,1]),casasdecimaisExpB),
+                        "Alteração" = (exp(summary(modelo)$coefficients[,1]) - 1),
+                        "I.C. (Exp β)" = paste0("[",round(exp(summary(modelo)$coefficients[,1]-1.96*summary(modelo)$coefficients[,2]),casasdecimaisExpB),"; ",
+                                                round(exp(summary(modelo)$coefficients[,1]+1.96*summary(modelo)$coefficients[,2]),casasdecimaisExpB),"]"),
+                        "I.C. (Alteração)" = paste0("[",round((exp(summary(modelo)$coefficients[,1]-1.96*summary(modelo)$coefficients[,2])-1)*100,casasdecimaisExpB),"%; ",
+                                                    round((exp(summary(modelo)$coefficients[,1]+1.96*summary(modelo)$coefficients[,2])-1)*100,casasdecimaisExpB),"%]"),
+                        "Valor-p" = round(summary(modelo)$coefficients[,4],4))
+  }
+  row.names(Tabela) = NULL
+  return(Tabela)
+}
+
+MetricasRegressao = function(modelo,dados_teste,var_resposta_teste){
+  erro_mae = MAE(predict(modelo,dados_teste), var_resposta_teste)
+  erro_mse = MSE(predict(modelo,dados_teste), var_resposta_teste)
+  erro_rmse = RMSE(predict(modelo,dados_teste), var_resposta_teste)
+  erro_rmsle = RMSLE(predict(modelo,dados_teste), var_resposta_teste)
+  erro_mape = MAPE(predict(modelo,dados_teste), var_resposta_teste)
+  r2_mod = R2_Score(predict(modelo,dados_teste), var_resposta_teste)
+  Tabela = data.frame('Métricas' = c('MAE','MSE','RMSE','RMSLE','MAPE','R²'),
+                      'Valores' = c(erro_mae,erro_mse,erro_rmse,erro_rmsle,erro_mape,r2_mod))
+  return(Tabela)
+}
+```
+
+## QtdCID
+```{r, include=FALSE}
+treino_QtdCID = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdCID.xlsx", sheet = 1)
+teste_QtdCID = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdCID.xlsx", sheet = 1)
+```
+
+### Com atendimentos
+```{r, warning=FALSE, message=FALSE}
+mod_QtdCID7 = glm.nb(QtdCID ~ EstadoCivil1 + Sexo1 + 
+                       Destino_Lixo1 + Numero_Comodos1 + QtdAtendimentosMedicos +
+                       Regional_Atendimento1, data = treino_QtdCID, link = 'log', control=glm.control(maxit=50))
+TabelaModelo(mod_QtdCID7)
+```
+
+### Sem atendimentos
+```{r, warning=FALSE, message=FALSE}
+mod_QtdCID5_SA = glm.nb(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + 
+                          Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 +
+                          Regional_Atendimento1, data = treino_QtdCID, link = 'log', control=glm.control(maxit=50))
+TabelaModelo(mod_QtdCID5_SA)
+```
+
+## QtdMedicamentos
+```{r,include=FALSE}
+treino_QtdMedicamentos = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdMedicamentos.xlsx", sheet = 1)
+teste_QtdMedicamentos = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdMedicamentos.xlsx", sheet = 1)
+```
+
+### Com atendimentos
+```{r, warning=FALSE, message=FALSE}
+mod_QtdMedicamentos4 = glm.nb(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + Situacao_Moradia1 + 
+                                Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + QtdAtendimentosMedicos +
+                                Regional_Atendimento1, data = treino_QtdMedicamentos, link = 'log', control=glm.control(maxit=50))
+TabelaModelo(mod_QtdMedicamentos4)
+```
+
+### Sem atendimentos
+```{r, warning=FALSE, message=FALSE}
+mod_QtdMedicamentos5_SA = glm.nb(QtdMedicamentos ~ Idade1 + EstadoCivil1 + Sexo1 + Situacao_Moradia1 + 
+                                   Consumo_Agua1 + Numero_Comodos1 +
+                                   Regional_Atendimento1, data = treino_QtdMedicamentos, link = 'log', control=glm.control(maxit=50))
+TabelaModelo(mod_QtdMedicamentos5_SA)
+```
+
+## Qtd_ENCAMINHAMENTOS
+```{r, include=FALSE}
+treino_QtdENCAMINHAMENTOS = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdENCAMINHAMENTOS.xlsx", sheet = 1)
+teste_QtdENCAMINHAMENTOS = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdENCAMINHAMENTOS.xlsx", sheet = 1)
+```
+
+### Com atendimentos
+```{r, warning=FALSE, message=FALSE}
+mod_QtdENCAMINHAMENTOS10 = glm(Qtd_ENCAMINHAMENTOS ~ Idade1 + Sexo1 + 
+                                QtdAtendimentosMedicos, data = treino_QtdENCAMINHAMENTOS, family = poisson(link='log'))
+TabelaModelo(mod_QtdENCAMINHAMENTOS10)
+```
+
+### Sem atendimentos
+```{r, warning=FALSE, message=FALSE}
+mod_QtdENCAMINHAMENTOS11_SA = glm(Qtd_ENCAMINHAMENTOS ~ Idade1, data = treino_QtdENCAMINHAMENTOS, family = poisson(link = 'log'))
+TabelaModelo(mod_QtdENCAMINHAMENTOS11_SA)
+```
+
+## Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE
+```{r, include=FALSE}
+treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdENCAMINHAMENTO_PARA_ESPECIALIDADE.xlsx", sheet = 1)
+teste_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdENCAMINHAMENTO_PARA_ESPECIALIDADE.xlsx", sheet = 1)
+```
+
+
+### Com atendimentos
+```{r, warning=FALSE, message=FALSE}
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7 = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Num_Membros_Familia1 + 
+        Consumo_Agua1 + 
+        QtdAtendimentosMedicos + Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = poisson(link='log'))
+TabelaModelo(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7)
+```
+
+### Sem atendimentos
+```{r, warning=FALSE, message=FALSE}
+mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7_SA = 
+  glm(Qtd_ENCAMINHAMENTO_PARA_ESPECIALIDADE ~ Idade1 + EstadoCivil1 + Num_Membros_Familia1 + 
+        Consumo_Agua1 + 
+        Regional_Atendimento1, data = treino_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE, family = poisson(link = 'log'))
+TabelaModelo(mod_QtdENCAMINHAMENTO_PARA_ESPECIALIDADE7_SA)
+```
+
+## Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL
+```{r, include=FALSE}
+treino_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/treino QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL.xlsx", sheet = 1)
+teste_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL = read.xlsx("C:/Users/cesar_macieira/Desktop/Usiminas/Nescon/atendimentos-medicos/teste QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL.xlsx", sheet = 1)
+```
+
+```{r}
+DescritivaCat(treino_QtdENCAMINHAMENTO_PARA_SAUDE_MENTAL$Qtd_ENCAMINHAMENTO_PARA_SAUDE_MENTAL)
+```
+
