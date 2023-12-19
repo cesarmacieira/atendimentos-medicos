@@ -241,8 +241,9 @@ teste_QtdCID$QtdCID = teste_QtdCID$QtdCID + 0.001
 
 mod_QtdCID1 = glm(QtdCID ~ Idade1 + EstadoCivil1 + Sexo1 + Num_Membros_Familia1 + Energia_Eletrica1 + Situacao_Moradia1 + 
       Abastecimento_Agua1 + Consumo_Agua1 + Destino_Lixo1 + Numero_Comodos1 + QtdAtendimentosMedicos +
-      Regional_Atendimento1, data = treino_QtdCID, family = Gamma(link = 'log'))
+      Regional_Atendimento1, data = treino_QtdCID, family = poisson(link = 'log'))
 summary(mod_QtdCID1)
+TabelaModelo(mod_QtdCID1)
 car::vif(mod_QtdCID1)
 
 #Num_Membros_Familia1
@@ -687,87 +688,25 @@ DescritivaCat(treino_QtdENCAMINHAMENTO_PARA_URGENCIA$Qtd_ENCAMINHAMENTO_PARA_URG
 #### Índice de risco que envolva QtdCID e QtdMedicamentos (normalizados)
 ####=====================================================================
 dados_modelos_QtdCID_QtdMedicamentos = dados_modelos %>% drop_na(QtdCID,QtdMedicamentos)
-TesteDeNormalidade(dados_modelos_QtdCID_QtdMedicamentos$QtdMedicamentos)
-
-set.seed(13)
-split_dados_modelos_QtdCID_QtdMedicamentos = stratified(dados_modelos_QtdCID_QtdMedicamentos,
-                                                        c("EstadoCivil1","Sexo1","Situacao_Moradia1","Abastecimento_Agua1",
-                                                          "Consumo_Agua1","Destino_Lixo1","Regional_Atendimento1"), 0.75, 
-                                                        keep.rownames = TRUE, bothSets = TRUE)
-
-dados_treino_QtdCID_QtdMedicamentos = split_dados_modelos_QtdCID_QtdMedicamentos$SAMP1 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,QtdCID,QtdMedicamentos)
-
-dados_teste_QtdCID_QtdMedicamentos = split_dados_modelos_QtdCID_QtdMedicamentos$SAMP2 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,QtdCID,QtdMedicamentos)
-
-# write.xlsx(dados_treino_QtdCID_QtdMedicamentos, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/treino QtdCID QtdMedicamentos.xlsx', 
-#            rowNames = F)
-# write.xlsx(dados_teste_QtdCID_QtdMedicamentos, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/teste QtdCID QtdMedicamentos.xlsx', 
-#            rowNames = F)
 
 ####=========================================================================
 #### Índice de risco que envolva QtdCID e Qtd_ENCAMINHAMENTOS (normalizados)
 ####=========================================================================
 dados_modelos_QtdCID_QtdENCAMINHAMENTOS = dados_modelos %>% drop_na(QtdCID,Qtd_ENCAMINHAMENTOS)
-TesteDeNormalidade(dados_modelos_QtdCID_QtdENCAMINHAMENTOS$Qtd_ENCAMINHAMENTOS)
 
-set.seed(13)
-split_dados_modelos_QtdCID_QtdENCAMINHAMENTOS = stratified(dados_modelos_QtdCID_QtdENCAMINHAMENTOS,
-                                                           c("EstadoCivil1","Sexo1","Situacao_Moradia1","Abastecimento_Agua1",
-                                                             "Consumo_Agua1","Destino_Lixo1","Regional_Atendimento1"), 0.75, 
-                                                           keep.rownames = TRUE, bothSets = TRUE)
+####==================================================================================
+#### Índice de risco que envolva Qtd_ENCAMINHAMENTOS e QtdMedicamentos (normalizados)
+####==================================================================================
 
-dados_treino_QtdCID_QtdENCAMINHAMENTOS = split_dados_modelos_QtdCID_QtdENCAMINHAMENTOS$SAMP1 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,QtdCID,Qtd_ENCAMINHAMENTOS)
+####==========================================================================================
+#### Índice de risco que envolva QtdCID, QtdMedicamentos e Qtd_ENCAMINHAMENTOS (normalizados)
+####==========================================================================================
 
-dados_teste_QtdCID_QtdENCAMINHAMENTOS = split_dados_modelos_QtdCID_QtdENCAMINHAMENTOS$SAMP2 %>% 
-  select(Idade1,EstadoCivil_1,EstadoCivil_2,EstadoCivil_3,EstadoCivil_4,EstadoCivil_5,EstadoCivil_6,
-         Sexo_F,Num_Membros_Familia1,Energia_Eletrica1,Situacao_Moradia_ALUGADO,Situacao_Moradia_ARRENDADO,
-         Situacao_Moradia_CEDIDO,Situacao_Moradia_FINANCIADO,Situacao_Moradia_OCUPACAO,Situacao_Moradia_OUTRA,
-         Situacao_Moradia_PROPRIO,Situacao_Moradia_SITUACAO_DE_RUA,Abastecimento_Agua_CISTERNA,Abastecimento_Agua_OUTRO,
-         Consumo_Agua_CLORADA,Consumo_Agua_FERVIDA,Consumo_Agua_FILTRADA,Consumo_Agua_SEM_TRATAMENTO,
-         Destino_Lixo_CEU_ABERTO,Destino_Lixo_COLETADO,Destino_Lixo_OUTRO,Destino_Lixo_QUEIMADO_ENTERRADO,
-         Numero_Comodos1,QtdAtendimentosMedicos,Regional_Atendimento_BARREIRO,Regional_Atendimento_CENTRO_SUL,
-         Regional_Atendimento_LESTE,Regional_Atendimento_NORDESTE,Regional_Atendimento_NOROESTE,
-         Regional_Atendimento_NORTE,Regional_Atendimento_OESTE,Regional_Atendimento_PAMPULHA,
-         Regional_Atendimento_VENDA_NOVA,QtdCID,Qtd_ENCAMINHAMENTOS)
+####=========================================================================
+#### Índice de risco que envolva QtdCID e Qtd_ENCAMINHAMENTOS (normalizados)
+####=========================================================================
 
-write.xlsx(dados_treino_QtdCID_QtdENCAMINHAMENTOS, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/treino QtdCID QtdENCAMINHAMENTOS.xlsx', 
-           rowNames = F)
-write.xlsx(dados_teste_QtdCID_QtdENCAMINHAMENTOS, 'C:/Users/User_/Desktop/Trabalhos/NESCON/Trabalho - Humberto/Python/Arquivos/teste QtdCID QtdENCAMINHAMENTOS.xlsx', 
-           rowNames = F)
 
-# 8. Índice de risco que envolva QtdCID e Qtd_ENCAMINHAMENTOS (normalizados)
-# 9. Índice de risco que envolva Qtd_ENCAMINHAMENTOS e QtdMedicamentos (normalizados)
-# 10. Índice de risco que envolva QtdCID, QtdMedicamentos e Qtd_ENCAMINHAMENTOS (normalizados)
 
 DescritivaCat(dados_modelos$QtdCID)
 DescritivaCat(dados_modelos$QtdMedicamentos)
