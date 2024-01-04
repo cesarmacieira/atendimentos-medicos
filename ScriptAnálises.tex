@@ -1,0 +1,822 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Trabalho Humberto},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{Trabalho Humberto}
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+\maketitle
+
+\hypertarget{anuxe1lise-de-dados}{%
+\section{Análise de dados}\label{anuxe1lise-de-dados}}
+
+\hypertarget{cuxe9sar-macieira}{%
+\subsubsection{César Macieira}\label{cuxe9sar-macieira}}
+
+\hypertarget{qtdatendimentosmedicos}{%
+\subsection{QtdAtendimentosMedicos}\label{qtdatendimentosmedicos}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod\_QtdAtendimentosMedicos4 }\OtherTok{=} 
+  \FunctionTok{glm.nb}\NormalTok{(QtdAtendimentosMedicos }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Idade1 }\SpecialCharTok{+}\NormalTok{ EstadoCivil1 }\SpecialCharTok{+}\NormalTok{ Sexo1 }\SpecialCharTok{+}\NormalTok{ Num\_Membros\_Familia1 }\SpecialCharTok{+} 
+\NormalTok{           Situacao\_Moradia1 }\SpecialCharTok{+}\NormalTok{ Consumo\_Agua1 }\SpecialCharTok{+}\NormalTok{ Numero\_Comodos1 }\SpecialCharTok{+} 
+\NormalTok{           Regional\_Atendimento1, }\AttributeTok{data =}\NormalTok{ treino\_QtdAtendimentosMedicos, }\AttributeTok{link =} \StringTok{\textquotesingle{}log\textquotesingle{}}\NormalTok{)}
+\FunctionTok{TabelaModelo}\NormalTok{(mod\_QtdAtendimentosMedicos4)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                                                      Variáveis
+## 1                                                                  (Intercept)
+## 2                                                                       Idade1
+## 3  EstadoCivil12) CONVIVE COM COMPANHEIRA(O), COM LACOS CONJUGAIS E SEM FILHOS
+## 4  EstadoCivil13) CONVIVE C/ COMPANHEIRA(O),C/ FILHO(S) E/OU OUTROS FAMILIARES
+## 5                EstadoCivil14) CONVIVE COM FAMILIA (RES), SEM COMPANHEIRA (O)
+## 6  EstadoCivil15) CONVIVE C/ OUTRA(S) PESSOA(S),S/LACOS CONSANG E/OU CONJUGAIS
+## 7                                                       EstadoCivil16) VIVE SO
+## 8                                                               Sexo1MASCULINO
+## 9                                                         Num_Membros_Familia1
+## 10                                                  Situacao_Moradia1ARRENDADO
+## 11                                                     Situacao_Moradia1CEDIDO
+## 12                                                 Situacao_Moradia1FINANCIADO
+## 13                                                   Situacao_Moradia1OCUPAÇÃO
+## 14                                                      Situacao_Moradia1OUTRA
+## 15                                                    Situacao_Moradia1PRÓPRIO
+## 16                                            Situacao_Moradia1SITUAÇÃO DE RUA
+## 17                                                        Consumo_Agua1FERVIDA
+## 18                                                       Consumo_Agua1FILTRADA
+## 19                                                 Consumo_Agua1SEM TRATAMENTO
+## 20                                                             Numero_Comodos1
+## 21                                             Regional_Atendimento1CENTRO SUL
+## 22                                                  Regional_Atendimento1LESTE
+## 23                                               Regional_Atendimento1NORDESTE
+## 24                                               Regional_Atendimento1NOROESTE
+## 25                                                  Regional_Atendimento1NORTE
+## 26                                                  Regional_Atendimento1OESTE
+## 27                                               Regional_Atendimento1PAMPULHA
+## 28                                             Regional_Atendimento1VENDA NOVA
+##                β     Exp.β     Alteração   I.C...Exp.β.   I.C...Alteração.
+## 1   1,4654373409 4,3294363  3,3294362657 [4,127; 4,542] [312,72%; 354,15%]
+## 2   0,0079928970 1,0080249  0,0080249255 [1,008; 1,009]     [0,75%; 0,85%]
+## 3   0,0232844274 1,0235576  0,0235576260 [1,007; 1,041]     [0,65%; 4,09%]
+## 4   0,0439704514 1,0449515  0,0449514776 [1,029; 1,061]     [2,88%; 6,13%]
+## 5   0,0049833764 1,0049958  0,0049958141 [0,994; 1,016]    [-0,55%; 1,56%]
+## 6   0,1342387927 1,1436659  0,1436658861 [1,102; 1,187]   [10,22%; 18,67%]
+## 7   0,0503621816 1,0516519  0,0516519164 [1,031; 1,073]     [3,12%; 7,25%]
+## 8  -0,1989193330 0,8196160 -0,1803839934 [0,812; 0,827] [-18,79%; -17,28%]
+## 9   0,0021312094 1,0021335  0,0021334820     [1; 1,004]     [0,04%; 0,39%]
+## 10  0,2530413059 1,2879365  0,2879364751   [0,8; 2,074]    [-20%; 107,35%]
+## 11  0,0009894302 1,0009899  0,0009899199 [0,978; 1,024]     [-2,15%; 2,4%]
+## 12 -0,0301783232 0,9702725 -0,0297275040 [0,936; 1,006]     [-6,42%; 0,6%]
+## 13  0,0107496140 1,0108076  0,0108075986 [0,841; 1,215]  [-15,89%; 21,48%]
+## 14 -0,1755043420 0,8390338 -0,1609662459 [0,714; 0,985]  [-28,56%; -1,46%]
+## 15  0,0198027152 1,0200001  0,0200000897 [1,006; 1,034]      [0,62%; 3,4%]
+## 16 -0,0306119816 0,9698518 -0,0301481795 [0,889; 1,058]   [-11,06%; 5,76%]
+## 17 -0,0200771879 0,9801230 -0,0198769833 [0,913; 1,052]    [-8,73%; 5,25%]
+## 18 -0,0422802053 0,9586011 -0,0413988622 [0,931; 0,987]   [-6,88%; -1,32%]
+## 19  0,0557963513 1,0573823  0,0573823272 [1,022; 1,094]     [2,19%; 9,41%]
+## 20 -0,0110146997 0,9890457 -0,0109542600 [0,987; 0,991]   [-1,28%; -0,92%]
+## 21  0,1879607205 1,2067861  0,2067861124 [1,178; 1,237]   [17,77%; 23,66%]
+## 22  0,0357223826 1,0363681  0,0363680927 [1,018; 1,055]     [1,84%; 5,46%]
+## 23  0,0349488642 1,0355668  0,0355667529 [1,019; 1,053]     [1,89%; 5,25%]
+## 24  0,0421866504 1,0430892  0,0430891536 [1,025; 1,061]     [2,53%; 6,11%]
+## 25  0,0884192395 1,0924460  0,0924460226  [1,075; 1,11]       [7,52%; 11%]
+## 26  0,0552920517 1,0568492  0,0568492242  [1,04; 1,074]     [3,95%; 7,44%]
+## 27  0,0601237255 1,0619679  0,0619679309 [1,042; 1,082]     [4,21%; 8,22%]
+## 28  0,1032355441 1,1087525  0,1087525385 [1,092; 1,126]     [9,18%; 12,6%]
+##    Valor.p
+## 1   0,0000
+## 2   0,0000
+## 3   0,0065
+## 4   0,0000
+## 5   0,3526
+## 6   0,0000
+## 7   0,0000
+## 8   0,0000
+## 9   0,0155
+## 10  0,2977
+## 11  0,9320
+## 12  0,1020
+## 13  0,9087
+## 14  0,0324
+## 15  0,0045
+## 16  0,4885
+## 17  0,5807
+## 18  0,0043
+## 19  0,0014
+## 20  0,0000
+## 21  0,0000
+## 22  0,0001
+## 23  0,0000
+## 24  0,0000
+## 25  0,0000
+## 26  0,0000
+## 27  0,0000
+## 28  0,0000
+\end{verbatim}
+
+\hypertarget{qtdcid}{%
+\subsection{QtdCID}\label{qtdcid}}
+
+\hypertarget{com-atendimentos}{%
+\subsubsection{Com atendimentos}\label{com-atendimentos}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod\_QtdCID7 }\OtherTok{=} \FunctionTok{glm.nb}\NormalTok{(QtdCID }\SpecialCharTok{\textasciitilde{}}\NormalTok{ EstadoCivil1 }\SpecialCharTok{+}\NormalTok{ Sexo1 }\SpecialCharTok{+} 
+\NormalTok{                       Destino\_Lixo1 }\SpecialCharTok{+}\NormalTok{ Numero\_Comodos1 }\SpecialCharTok{+}\NormalTok{ QtdAtendimentosMedicos }\SpecialCharTok{+}
+\NormalTok{                       Regional\_Atendimento1, }\AttributeTok{data =}\NormalTok{ treino\_QtdCID, }\AttributeTok{link =} \StringTok{\textquotesingle{}log\textquotesingle{}}\NormalTok{, }\AttributeTok{control=}\FunctionTok{glm.control}\NormalTok{(}\AttributeTok{maxit=}\DecValTok{50}\NormalTok{))}
+\FunctionTok{TabelaModelo}\NormalTok{(mod\_QtdCID7)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                                                      Variáveis
+## 1                                                                  (Intercept)
+## 2  EstadoCivil12) CONVIVE COM COMPANHEIRA(O), COM LACOS CONJUGAIS E SEM FILHOS
+## 3  EstadoCivil13) CONVIVE C/ COMPANHEIRA(O),C/ FILHO(S) E/OU OUTROS FAMILIARES
+## 4                EstadoCivil14) CONVIVE COM FAMILIA (RES), SEM COMPANHEIRA (O)
+## 5  EstadoCivil15) CONVIVE C/ OUTRA(S) PESSOA(S),S/LACOS CONSANG E/OU CONJUGAIS
+## 6                                                       EstadoCivil16) VIVE SO
+## 7                                                               Sexo1MASCULINO
+## 8                                                        Destino_Lixo1COLETADO
+## 9                                                           Destino_Lixo1OUTRO
+## 10                                           Destino_Lixo1QUEIMADO / ENTERRADO
+## 11                                                             Numero_Comodos1
+## 12                                                      QtdAtendimentosMedicos
+## 13                                             Regional_Atendimento1CENTRO SUL
+## 14                                                  Regional_Atendimento1LESTE
+## 15                                               Regional_Atendimento1NORDESTE
+## 16                                               Regional_Atendimento1NOROESTE
+## 17                                                  Regional_Atendimento1NORTE
+## 18                                                  Regional_Atendimento1OESTE
+## 19                                               Regional_Atendimento1PAMPULHA
+## 20                                             Regional_Atendimento1VENDA NOVA
+##               β     Exp.β    Alteração   I.C...Exp.β.   I.C...Alteração.
+## 1   0,928721680 2,5312713  1,531271335 [2,394; 2,676] [139,42%; 167,62%]
+## 2  -0,004343602 0,9956658 -0,004334183 [0,984; 1,007]    [-1,59%; 0,74%]
+## 3   0,008601288 1,0086384  0,008638386  [0,998; 1,02]    [-0,23%; 1,97%]
+## 4  -0,011650285 0,9884173 -0,011582683 [0,981; 0,996]   [-1,88%; -0,43%]
+## 5  -0,073740409 0,9289128 -0,071087200 [0,905; 0,953]    [-9,5%; -4,66%]
+## 6  -0,016403494 0,9837303 -0,016269689 [0,971; 0,997]   [-2,95%; -0,29%]
+## 7  -0,066587881 0,9355807 -0,064419308 [0,929; 0,942]   [-7,05%; -5,83%]
+## 8   0,017766594 1,0179254  0,017925358 [0,964; 1,075]    [-3,62%; 7,51%]
+## 9   0,061436755 1,0633632  0,063363242  [1,001; 1,13]    [0,09%; 12,97%]
+## 10  0,043270920 1,0442208  0,044220757 [0,978; 1,115]   [-2,21%; 11,51%]
+## 11 -0,007397629 0,9926297 -0,007370334 [0,991; 0,994]   [-0,86%; -0,61%]
+## 12  0,072666969 1,0753723  0,075372345 [1,075; 1,076]     [7,49%; 7,58%]
+## 13 -0,047725493 0,9533955 -0,046604536  [0,937; 0,97]      [-6,29%; -3%]
+## 14 -0,044132327 0,9568273 -0,043172665 [0,945; 0,969]   [-5,48%; -3,14%]
+## 15 -0,069931707 0,9324575 -0,067542502 [0,922; 0,943]   [-7,81%; -5,68%]
+## 16 -0,016443956 0,9836905 -0,016309492 [0,972; 0,995]    [-2,8%; -0,45%]
+## 17 -0,028159992 0,9722328 -0,027767195 [0,962; 0,983]   [-3,85%; -1,69%]
+## 18  0,027698693 1,0280859  0,028085869  [1,016; 1,04]     [1,65%; 3,98%]
+## 19 -0,040584115 0,9602284 -0,039771609 [0,948; 0,973]    [-5,24%; -2,7%]
+## 20 -0,133054855 0,8754171 -0,124582930 [0,866; 0,885] [-13,42%; -11,49%]
+##    Valor.p
+## 1   0,0000
+## 2   0,4671
+## 3   0,1206
+## 4   0,0018
+## 5   0,0000
+## 6   0,0174
+## 7   0,0000
+## 8   0,5240
+## 9   0,0467
+## 10  0,1963
+## 11  0,0000
+## 12  0,0000
+## 13  0,0000
+## 14  0,0000
+## 15  0,0000
+## 16  0,0069
+## 17  0,0000
+## 18  0,0000
+## 19  0,0000
+## 20  0,0000
+\end{verbatim}
+
+\hypertarget{sem-atendimentos}{%
+\subsubsection{Sem atendimentos}\label{sem-atendimentos}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod\_QtdCID5\_SA }\OtherTok{=} \FunctionTok{glm.nb}\NormalTok{(QtdCID }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Idade1 }\SpecialCharTok{+}\NormalTok{ EstadoCivil1 }\SpecialCharTok{+}\NormalTok{ Sexo1 }\SpecialCharTok{+} 
+\NormalTok{                          Consumo\_Agua1 }\SpecialCharTok{+}\NormalTok{ Destino\_Lixo1 }\SpecialCharTok{+}\NormalTok{ Numero\_Comodos1 }\SpecialCharTok{+}
+\NormalTok{                          Regional\_Atendimento1, }\AttributeTok{data =}\NormalTok{ treino\_QtdCID, }\AttributeTok{link =} \StringTok{\textquotesingle{}log\textquotesingle{}}\NormalTok{, }\AttributeTok{control=}\FunctionTok{glm.control}\NormalTok{(}\AttributeTok{maxit=}\DecValTok{50}\NormalTok{))}
+\FunctionTok{TabelaModelo}\NormalTok{(mod\_QtdCID5\_SA)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                                                      Variáveis
+## 1                                                                  (Intercept)
+## 2                                                                       Idade1
+## 3  EstadoCivil12) CONVIVE COM COMPANHEIRA(O), COM LACOS CONJUGAIS E SEM FILHOS
+## 4  EstadoCivil13) CONVIVE C/ COMPANHEIRA(O),C/ FILHO(S) E/OU OUTROS FAMILIARES
+## 5                EstadoCivil14) CONVIVE COM FAMILIA (RES), SEM COMPANHEIRA (O)
+## 6  EstadoCivil15) CONVIVE C/ OUTRA(S) PESSOA(S),S/LACOS CONSANG E/OU CONJUGAIS
+## 7                                                       EstadoCivil16) VIVE SO
+## 8                                                               Sexo1MASCULINO
+## 9                                                         Consumo_Agua1FERVIDA
+## 10                                                       Consumo_Agua1FILTRADA
+## 11                                                 Consumo_Agua1SEM TRATAMENTO
+## 12                                                       Destino_Lixo1COLETADO
+## 13                                                          Destino_Lixo1OUTRO
+## 14                                           Destino_Lixo1QUEIMADO / ENTERRADO
+## 15                                                             Numero_Comodos1
+## 16                                             Regional_Atendimento1CENTRO SUL
+## 17                                                  Regional_Atendimento1LESTE
+## 18                                               Regional_Atendimento1NORDESTE
+## 19                                               Regional_Atendimento1NOROESTE
+## 20                                                  Regional_Atendimento1NORTE
+## 21                                                  Regional_Atendimento1OESTE
+## 22                                               Regional_Atendimento1PAMPULHA
+## 23                                             Regional_Atendimento1VENDA NOVA
+##               β     Exp.β    Alteração   I.C...Exp.β.   I.C...Alteração.
+## 1   1,306521134 3,6933028  2,693302831 [3,412; 3,998] [241,16%; 299,83%]
+## 2   0,003826319 1,0038336  0,003833648 [1,003; 1,004]     [0,34%; 0,43%]
+## 3   0,012502651 1,0125811  0,012581136 [0,998; 1,028]    [-0,22%; 2,76%]
+## 4   0,035798461 1,0364469  0,036446941 [1,022; 1,051]     [2,24%; 5,07%]
+## 5  -0,005466240 0,9945487 -0,005451328 [0,985; 1,004]    [-1,46%; 0,38%]
+## 6   0,024066125 1,0243581  0,024358051 [0,991; 1,058]    [-0,85%; 5,84%]
+## 7   0,019490522 1,0196817  0,019681702 [1,002; 1,037]     [0,23%; 3,73%]
+## 8  -0,182033545 0,8335734 -0,166426622  [0,827; 0,84] [-17,32%; -15,96%]
+## 9  -0,001489419 0,9985117 -0,001488310 [0,938; 1,063]    [-6,19%; 6,28%]
+## 10 -0,027121785 0,9732427 -0,026757292 [0,949; 0,998]   [-5,12%; -0,17%]
+## 11  0,052314084 1,0537066  0,053706643 [1,023; 1,086]     [2,26%; 8,57%]
+## 12  0,028045599 1,0284426  0,028442579  [0,96; 1,102]   [-3,99%; 10,16%]
+## 13  0,100522222 1,1057482  0,105748213 [1,025; 1,193]    [2,46%; 19,34%]
+## 14  0,062396435 1,0643842  0,064384221  [0,98; 1,156]      [-2%; 15,61%]
+## 15 -0,012730462 0,9873502 -0,012649772 [0,986; 0,989]   [-1,42%; -1,11%]
+## 16  0,086346783 1,0901843  0,090184321 [1,067; 1,114]    [6,67%; 11,42%]
+## 17 -0,012990747 0,9870933 -0,012906732 [0,972; 1,002]    [-2,79%; 0,23%]
+## 18 -0,036398170 0,9642563 -0,035743721 [0,951; 0,978]   [-4,94%; -2,19%]
+## 19  0,017652806 1,0178095  0,017809538 [1,003; 1,033]     [0,27%; 3,32%]
+## 20  0,031838712 1,0323510  0,032350986 [1,018; 1,047]      [1,8%; 4,69%]
+## 21  0,058856150 1,0606227  0,060622659 [1,045; 1,076]      [4,55%; 7,6%]
+## 22  0,010812319 1,0108710  0,010870984 [0,994; 1,028]    [-0,58%; 2,78%]
+## 23 -0,060154486 0,9416191 -0,058380945 [0,929; 0,955]   [-7,12%; -4,54%]
+##    Valor.p
+## 1   0,0000
+## 2   0,0000
+## 3   0,0963
+## 4   0,0000
+## 5   0,2449
+## 6   0,1485
+## 7   0,0259
+## 8   0,0000
+## 9   0,9627
+## 10  0,0368
+## 11  0,0006
+## 12  0,4240
+## 13  0,0098
+## 14  0,1388
+## 15  0,0000
+## 16  0,0000
+## 17  0,0963
+## 18  0,0000
+## 19  0,0210
+## 20  0,0000
+## 21  0,0000
+## 22  0,2017
+## 23  0,0000
+\end{verbatim}
+
+\hypertarget{qtdmedicamentos}{%
+\subsection{QtdMedicamentos}\label{qtdmedicamentos}}
+
+\hypertarget{com-atendimentos-1}{%
+\subsubsection{Com atendimentos}\label{com-atendimentos-1}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod\_QtdMedicamentos4 }\OtherTok{=} \FunctionTok{glm.nb}\NormalTok{(QtdMedicamentos }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Idade1 }\SpecialCharTok{+}\NormalTok{ EstadoCivil1 }\SpecialCharTok{+}\NormalTok{ Sexo1 }\SpecialCharTok{+}\NormalTok{ Situacao\_Moradia1 }\SpecialCharTok{+} 
+\NormalTok{                                Consumo\_Agua1 }\SpecialCharTok{+}\NormalTok{ Destino\_Lixo1 }\SpecialCharTok{+}\NormalTok{ Numero\_Comodos1 }\SpecialCharTok{+}\NormalTok{ QtdAtendimentosMedicos }\SpecialCharTok{+}
+\NormalTok{                                Regional\_Atendimento1, }\AttributeTok{data =}\NormalTok{ treino\_QtdMedicamentos, }\AttributeTok{link =} \StringTok{\textquotesingle{}log\textquotesingle{}}\NormalTok{, }\AttributeTok{control=}\FunctionTok{glm.control}\NormalTok{(}\AttributeTok{maxit=}\DecValTok{50}\NormalTok{))}
+\FunctionTok{TabelaModelo}\NormalTok{(mod\_QtdMedicamentos4)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                                                      Variáveis
+## 1                                                                  (Intercept)
+## 2                                                                       Idade1
+## 3  EstadoCivil12) CONVIVE COM COMPANHEIRA(O), COM LACOS CONJUGAIS E SEM FILHOS
+## 4  EstadoCivil13) CONVIVE C/ COMPANHEIRA(O),C/ FILHO(S) E/OU OUTROS FAMILIARES
+## 5                EstadoCivil14) CONVIVE COM FAMILIA (RES), SEM COMPANHEIRA (O)
+## 6  EstadoCivil15) CONVIVE C/ OUTRA(S) PESSOA(S),S/LACOS CONSANG E/OU CONJUGAIS
+## 7                                                       EstadoCivil16) VIVE SO
+## 8                                                               Sexo1MASCULINO
+## 9                                                   Situacao_Moradia1ARRENDADO
+## 10                                                     Situacao_Moradia1CEDIDO
+## 11                                                 Situacao_Moradia1FINANCIADO
+## 12                                                   Situacao_Moradia1OCUPAÇÃO
+## 13                                                      Situacao_Moradia1OUTRA
+## 14                                                    Situacao_Moradia1PRÓPRIO
+## 15                                            Situacao_Moradia1SITUAÇÃO DE RUA
+## 16                                                        Consumo_Agua1FERVIDA
+## 17                                                       Consumo_Agua1FILTRADA
+## 18                                                 Consumo_Agua1SEM TRATAMENTO
+## 19                                                       Destino_Lixo1COLETADO
+## 20                                                          Destino_Lixo1OUTRO
+## 21                                           Destino_Lixo1QUEIMADO / ENTERRADO
+## 22                                                             Numero_Comodos1
+## 23                                                      QtdAtendimentosMedicos
+## 24                                             Regional_Atendimento1CENTRO SUL
+## 25                                                  Regional_Atendimento1LESTE
+## 26                                               Regional_Atendimento1NORDESTE
+## 27                                               Regional_Atendimento1NOROESTE
+## 28                                                  Regional_Atendimento1NORTE
+## 29                                                  Regional_Atendimento1OESTE
+## 30                                               Regional_Atendimento1PAMPULHA
+## 31                                             Regional_Atendimento1VENDA NOVA
+##               β     Exp.β    Alteração   I.C...Exp.β.   I.C...Alteração.
+## 1  -0,548463392 0,5778370 -0,422162963  [0,51; 0,654] [-48,97%; -34,56%]
+## 2   0,003475889 1,0034819  0,003481937 [1,003; 1,004]     [0,27%; 0,42%]
+## 3   0,009924523 1,0099739  0,009973935 [0,986; 1,034]    [-1,37%; 3,42%]
+## 4   0,042518437 1,0434353  0,043435294 [1,021; 1,066]     [2,09%; 6,64%]
+## 5  -0,008656871 0,9913805 -0,008619508 [0,977; 1,006]    [-2,32%; 0,62%]
+## 6  -0,074157986 0,9285250 -0,071475011 [0,881; 0,979]  [-11,93%; -2,11%]
+## 7  -0,017140175 0,9830059 -0,016994117  [0,956; 1,01]    [-4,36%; 1,04%]
+## 8  -0,217087002 0,8048599 -0,195140058 [0,794; 0,816] [-20,58%; -18,43%]
+## 9  -0,073226862 0,9293900 -0,070610037 [0,471; 1,835]  [-52,92%; 83,48%]
+## 10  0,028309999 1,0287145  0,028714536 [0,996; 1,063]    [-0,43%; 6,28%]
+## 11 -0,011346442 0,9887177 -0,011282314 [0,938; 1,042]     [-6,19%; 4,2%]
+## 12  0,240010591 1,2712626  0,271262614     [1; 1,616]     [0,01%; 61,6%]
+## 13 -0,034774588 0,9658231 -0,034176900  [0,758; 1,23]  [-24,17%; 23,01%]
+## 14  0,080495366 1,0838238  0,083823824 [1,063; 1,105]    [6,27%; 10,54%]
+## 15  0,044109014 1,0450963  0,045096279 [0,922; 1,184]   [-7,78%; 18,43%]
+## 16 -0,003611551 0,9963950 -0,003605037 [0,902; 1,101]   [-9,79%; 10,05%]
+## 17 -0,026673649 0,9736790 -0,026321050 [0,935; 1,014]    [-6,49%; 1,38%]
+## 18  0,076854312 1,0798847  0,079884739  [1,03; 1,132]     [3,02%; 13,2%]
+## 19 -0,107454684 0,8981172 -0,101882779 [0,808; 0,998]  [-19,19%; -0,18%]
+## 20 -0,011318915 0,9887449 -0,011255097 [0,879; 1,112]  [-12,07%; 11,19%]
+## 21 -0,047658957 0,9534589 -0,046541098 [0,839; 1,083]    [-16,06%; 8,3%]
+## 22 -0,014975472 0,9851361 -0,014863897 [0,982; 0,988]   [-1,75%; -1,22%]
+## 23  0,106206801 1,1120518  0,112051826 [1,111; 1,113]    [11,11%; 11,3%]
+## 24 -0,142648765 0,8670586 -0,132941443 [0,837; 0,898] [-16,27%; -10,22%]
+## 25 -0,117925303 0,8887624 -0,111237562 [0,867; 0,911]  [-13,29%; -8,91%]
+## 26 -0,116340940 0,8901717 -0,109828323  [0,87; 0,911]     [-13%; -8,92%]
+## 27 -0,210150055 0,8104626 -0,189537377 [0,791; 0,831] [-20,93%; -16,92%]
+## 28 -0,033355590 0,9671946 -0,032805426 [0,946; 0,989]   [-5,39%; -1,12%]
+## 29 -0,031261068 0,9692225 -0,030777492 [0,947; 0,992]   [-5,27%; -0,83%]
+## 30 -0,168050004 0,8453116 -0,154688436 [0,823; 0,868] [-17,72%; -13,15%]
+## 31 -0,138024542 0,8710773 -0,128922686  [0,852; 0,89] [-14,77%; -10,98%]
+##    Valor.p
+## 1   0,0000
+## 2   0,0000
+## 3   0,4114
+## 4   0,0001
+## 5   0,2524
+## 6   0,0060
+## 7   0,2216
+## 8   0,0000
+## 9   0,8329
+## 10  0,0890
+## 11  0,6720
+## 12  0,0499
+## 13  0,7781
+## 14  0,0000
+## 15  0,4894
+## 16  0,9432
+## 17  0,1955
+## 18  0,0014
+## 19  0,0462
+## 20  0,8501
+## 21  0,4633
+## 22  0,0000
+## 23  0,0000
+## 24  0,0000
+## 25  0,0000
+## 26  0,0000
+## 27  0,0000
+## 28  0,0030
+## 29  0,0075
+## 30  0,0000
+## 31  0,0000
+\end{verbatim}
+
+\hypertarget{sem-atendimentos-1}{%
+\subsubsection{Sem atendimentos}\label{sem-atendimentos-1}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod\_QtdMedicamentos5\_SA }\OtherTok{=} \FunctionTok{glm.nb}\NormalTok{(QtdMedicamentos }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Idade1 }\SpecialCharTok{+}\NormalTok{ EstadoCivil1 }\SpecialCharTok{+}\NormalTok{ Sexo1 }\SpecialCharTok{+}\NormalTok{ Situacao\_Moradia1 }\SpecialCharTok{+} 
+\NormalTok{                                   Consumo\_Agua1 }\SpecialCharTok{+}\NormalTok{ Numero\_Comodos1 }\SpecialCharTok{+}
+\NormalTok{                                   Regional\_Atendimento1, }\AttributeTok{data =}\NormalTok{ treino\_QtdMedicamentos, }\AttributeTok{link =} \StringTok{\textquotesingle{}log\textquotesingle{}}\NormalTok{, }\AttributeTok{control=}\FunctionTok{glm.control}\NormalTok{(}\AttributeTok{maxit=}\DecValTok{50}\NormalTok{))}
+\FunctionTok{TabelaModelo}\NormalTok{(mod\_QtdMedicamentos5\_SA)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                                                      Variáveis
+## 1                                                                  (Intercept)
+## 2                                                                       Idade1
+## 3  EstadoCivil12) CONVIVE COM COMPANHEIRA(O), COM LACOS CONJUGAIS E SEM FILHOS
+## 4  EstadoCivil13) CONVIVE C/ COMPANHEIRA(O),C/ FILHO(S) E/OU OUTROS FAMILIARES
+## 5                EstadoCivil14) CONVIVE COM FAMILIA (RES), SEM COMPANHEIRA (O)
+## 6  EstadoCivil15) CONVIVE C/ OUTRA(S) PESSOA(S),S/LACOS CONSANG E/OU CONJUGAIS
+## 7                                                       EstadoCivil16) VIVE SO
+## 8                                                               Sexo1MASCULINO
+## 9                                                   Situacao_Moradia1ARRENDADO
+## 10                                                     Situacao_Moradia1CEDIDO
+## 11                                                 Situacao_Moradia1FINANCIADO
+## 12                                                   Situacao_Moradia1OCUPAÇÃO
+## 13                                                      Situacao_Moradia1OUTRA
+## 14                                                    Situacao_Moradia1PRÓPRIO
+## 15                                            Situacao_Moradia1SITUAÇÃO DE RUA
+## 16                                                        Consumo_Agua1FERVIDA
+## 17                                                       Consumo_Agua1FILTRADA
+## 18                                                 Consumo_Agua1SEM TRATAMENTO
+## 19                                                             Numero_Comodos1
+## 20                                             Regional_Atendimento1CENTRO SUL
+## 21                                                  Regional_Atendimento1LESTE
+## 22                                               Regional_Atendimento1NORDESTE
+## 23                                               Regional_Atendimento1NOROESTE
+## 24                                                  Regional_Atendimento1NORTE
+## 25                                                  Regional_Atendimento1OESTE
+## 26                                               Regional_Atendimento1PAMPULHA
+## 27                                             Regional_Atendimento1VENDA NOVA
+##                β     Exp.β     Alteração   I.C...Exp.β.   I.C...Alteração.
+## 1   0,0085592244 1,0085960  0,0085959593 [0,934; 1,089]     [-6,6%; 8,91%]
+## 2   0,0081558094 1,0081892  0,0081891586 [1,007; 1,009]      [0,74%; 0,9%]
+## 3   0,0337406159 1,0343163  0,0343162867 [1,007; 1,063]     [0,66%; 6,28%]
+## 4   0,0790379794 1,0822454  0,0822454243  [1,055; 1,11]    [5,54%; 10,97%]
+## 5   0,0004782573 1,0004784  0,0004783717 [0,984; 1,018]    [-1,64%; 1,77%]
+## 6   0,0813812749 1,0847844  0,0847844188 [1,022; 1,152]    [2,18%; 15,17%]
+## 7   0,0320408017 1,0325596  0,0325596346     [1; 1,066]     [0,04%; 6,58%]
+## 8  -0,3746360727 0,6875394 -0,3124605524 [0,677; 0,698]  [-32,28%; -30,2%]
+## 9   0,1304827590 1,1393783  0,1393782957  [0,52; 2,498] [-48,03%; 149,79%]
+## 10  0,0200880900 1,0202912  0,0202912135 [0,983; 1,059]      [-1,7%; 5,9%]
+## 11 -0,0383451795 0,9623807 -0,0376193105 [0,907; 1,021]    [-9,33%; 2,15%]
+## 12  0,1793289063 1,1964142  0,1964141876 [0,899; 1,592]  [-10,07%; 59,17%]
+## 13 -0,1994639104 0,8191698 -0,1808302162 [0,625; 1,074]   [-37,55%; 7,45%]
+## 14  0,0810476671 1,0844226  0,0844225866  [1,06; 1,109]     [6,04%; 10,9%]
+## 15 -0,0185485941 0,9816224 -0,0183776277 [0,851; 1,132]   [-14,9%; 13,22%]
+## 16 -0,0140788010 0,9860198 -0,0139801582 [0,879; 1,106]  [-12,06%; 10,55%]
+## 17 -0,0701061591 0,9322948 -0,0677051569  [0,89; 0,977]  [-11,01%; -2,33%]
+## 18  0,1135690871 1,1202693  0,1202692824 [1,061; 1,183]     [6,09%; 18,3%]
+## 19 -0,0210628948 0,9791574 -0,0208426213 [0,976; 0,982]   [-2,39%; -1,78%]
+## 20  0,0604308162 1,0622941  0,0622941015 [1,022; 1,105]    [2,15%; 10,47%]
+## 21 -0,0642531245 0,9377676 -0,0622324025 [0,912; 0,965]   [-8,83%; -3,54%]
+## 22 -0,0599211577 0,9418388 -0,0581612126 [0,917; 0,967]   [-8,26%; -3,31%]
+## 23 -0,1503018144 0,8604482 -0,1395517585 [0,837; 0,885]  [-16,35%; -11,5%]
+## 24  0,0595351851 1,0613431  0,0613431038 [1,035; 1,089]     [3,46%; 8,87%]
+## 25  0,0098209305 1,0098693  0,0098693141 [0,983; 1,037]     [-1,65%; 3,7%]
+## 26 -0,0917368055 0,9123452 -0,0876547578 [0,885; 0,941]   [-11,54%; -5,9%]
+## 27 -0,0255919524 0,9747327 -0,0252672542 [0,951; 0,999]   [-4,93%; -0,06%]
+##    Valor.p
+## 1   0,8271
+## 2   0,0000
+## 3   0,0149
+## 4   0,0000
+## 5   0,9561
+## 6   0,0077
+## 7   0,0473
+## 8   0,0000
+## 9   0,7446
+## 10  0,2898
+## 11  0,2071
+## 12  0,2183
+## 13  0,1495
+## 14  0,0000
+## 15  0,7990
+## 16  0,8094
+## 17  0,0031
+## 18  0,0000
+## 19  0,0000
+## 20  0,0025
+## 21  0,0000
+## 22  0,0000
+## 23  0,0000
+## 24  0,0000
+## 25  0,4676
+## 26  0,0000
+## 27  0,0446
+\end{verbatim}
+
+\hypertarget{qtd_encaminhamentos}{%
+\subsection{Qtd\_ENCAMINHAMENTOS}\label{qtd_encaminhamentos}}
+
+\hypertarget{com-atendimentos-2}{%
+\subsubsection{Com atendimentos}\label{com-atendimentos-2}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod\_QtdENCAMINHAMENTOS10 }\OtherTok{=} \FunctionTok{glm}\NormalTok{(Qtd\_ENCAMINHAMENTOS }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Idade1 }\SpecialCharTok{+}\NormalTok{ Sexo1 }\SpecialCharTok{+} 
+\NormalTok{                                QtdAtendimentosMedicos, }\AttributeTok{data =}\NormalTok{ treino\_QtdENCAMINHAMENTOS, }\AttributeTok{family =} \FunctionTok{poisson}\NormalTok{(}\AttributeTok{link=}\StringTok{\textquotesingle{}log\textquotesingle{}}\NormalTok{))}
+\FunctionTok{TabelaModelo}\NormalTok{(mod\_QtdENCAMINHAMENTOS10)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                Variáveis            β     Exp.β    Alteração   I.C...Exp.β.
+## 1            (Intercept) -0,182792795 0,8329407 -0,167059272 [0,707; 0,981]
+## 2                 Idade1  0,002082806 1,0020850  0,002084976     [1; 1,004]
+## 3         Sexo1MASCULINO  0,043899735 1,0448776  0,044877585 [1,004; 1,088]
+## 4 QtdAtendimentosMedicos  0,014049924 1,0141491  0,014149088 [1,012; 1,016]
+##   I.C...Alteração. Valor.p
+## 1 [-29,27%; -1,9%]  0,0285
+## 2  [-0,01%; 0,43%]  0,0639
+## 3   [0,39%; 8,75%]  0,0315
+## 4   [1,21%; 1,62%]  0,0000
+\end{verbatim}
+
+\hypertarget{sem-atendimentos-2}{%
+\subsubsection{Sem atendimentos}\label{sem-atendimentos-2}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod\_QtdENCAMINHAMENTOS11\_SA }\OtherTok{=} \FunctionTok{glm}\NormalTok{(Qtd\_ENCAMINHAMENTOS }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Idade1, }\AttributeTok{data =}\NormalTok{ treino\_QtdENCAMINHAMENTOS, }\AttributeTok{family =} \FunctionTok{poisson}\NormalTok{(}\AttributeTok{link =} \StringTok{\textquotesingle{}log\textquotesingle{}}\NormalTok{))}
+\FunctionTok{TabelaModelo}\NormalTok{(mod\_QtdENCAMINHAMENTOS11\_SA)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     Variáveis           β    Exp.β   Alteração   I.C...Exp.β.  I.C...Alteração.
+## 1 (Intercept) 0,013209498 1,013297 0,013297129 [0,865; 1,187] [-13,47%; 18,67%]
+## 2      Idade1 0,001973071 1,001975 0,001975019     [1; 1,004]   [-0,02%; 0,42%]
+##   Valor.p
+## 1  0,8698
+## 2  0,0770
+\end{verbatim}
+
+\hypertarget{qtd_encaminhamento_para_especialidade}{%
+\subsection{Qtd\_ENCAMINHAMENTO\_PARA\_ESPECIALIDADE}\label{qtd_encaminhamento_para_especialidade}}
+
+\hypertarget{com-atendimentos-3}{%
+\subsubsection{Com atendimentos}\label{com-atendimentos-3}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod\_QtdENCAMINHAMENTO\_PARA\_ESPECIALIDADE7 }\OtherTok{=} 
+  \FunctionTok{glm}\NormalTok{(Qtd\_ENCAMINHAMENTO\_PARA\_ESPECIALIDADE }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Idade1 }\SpecialCharTok{+}\NormalTok{ EstadoCivil1 }\SpecialCharTok{+}\NormalTok{ Num\_Membros\_Familia1 }\SpecialCharTok{+} 
+\NormalTok{        Consumo\_Agua1 }\SpecialCharTok{+} 
+\NormalTok{        QtdAtendimentosMedicos }\SpecialCharTok{+}\NormalTok{ Regional\_Atendimento1, }\AttributeTok{data =}\NormalTok{ treino\_QtdENCAMINHAMENTO\_PARA\_ESPECIALIDADE, }\AttributeTok{family =} \FunctionTok{poisson}\NormalTok{(}\AttributeTok{link=}\StringTok{\textquotesingle{}log\textquotesingle{}}\NormalTok{))}
+\FunctionTok{TabelaModelo}\NormalTok{(mod\_QtdENCAMINHAMENTO\_PARA\_ESPECIALIDADE7)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                                                      Variáveis
+## 1                                                                  (Intercept)
+## 2                                                                       Idade1
+## 3  EstadoCivil12) CONVIVE COM COMPANHEIRA(O), COM LACOS CONJUGAIS E SEM FILHOS
+## 4  EstadoCivil13) CONVIVE C/ COMPANHEIRA(O),C/ FILHO(S) E/OU OUTROS FAMILIARES
+## 5                EstadoCivil14) CONVIVE COM FAMILIA (RES), SEM COMPANHEIRA (O)
+## 6  EstadoCivil15) CONVIVE C/ OUTRA(S) PESSOA(S),S/LACOS CONSANG E/OU CONJUGAIS
+## 7                                                       EstadoCivil16) VIVE SO
+## 8                                                         Num_Membros_Familia1
+## 9                                                         Consumo_Agua1FERVIDA
+## 10                                                       Consumo_Agua1FILTRADA
+## 11                                                 Consumo_Agua1SEM TRATAMENTO
+## 12                                                      QtdAtendimentosMedicos
+## 13                                             Regional_Atendimento1CENTRO SUL
+## 14                                                  Regional_Atendimento1LESTE
+## 15                                               Regional_Atendimento1NORDESTE
+## 16                                               Regional_Atendimento1NOROESTE
+## 17                                                  Regional_Atendimento1NORTE
+## 18                                                  Regional_Atendimento1OESTE
+## 19                                               Regional_Atendimento1PAMPULHA
+## 20                                             Regional_Atendimento1VENDA NOVA
+##               β        Exp.β   Alteração   I.C...Exp.β.   I.C...Alteração.
+## 1   -0,52411634 5,920783e-01 -0,40792167 [0,104; 3,382] [-89,64%; 238,23%]
+## 2   -0,05753655 9,440874e-01 -0,05591261 [0,923; 0,966]   [-7,74%; -3,39%]
+## 3    0,41993518 1,521863e+00  0,52186291 [0,835; 2,773]  [-16,48%; 177,3%]
+## 4   -0,64485905 5,247365e-01 -0,47526350 [0,236; 1,165]  [-76,37%; 16,55%]
+## 5    0,14318738 1,153946e+00  0,15394601 [0,772; 1,726]  [-22,83%; 72,56%]
+## 6    0,96102418 2,614373e+00  1,61437270  [1,234; 5,54]  [23,38%; 453,98%]
+## 7    0,46118493 1,585952e+00  0,58595211 [0,838; 3,002] [-16,21%; 200,19%]
+## 8    0,05710271 1,058765e+00  0,05876455 [1,022; 1,096]     [2,24%; 9,65%]
+## 9  -13,74279634 1,075423e-06 -0,99999892       [0; Inf]      [-100%; Inf%]
+## 10  -0,96616586 3,805393e-01 -0,61946072 [0,192; 0,754] [-80,79%; -24,62%]
+## 11  -1,20275246 3,003663e-01 -0,69963367 [0,119; 0,761]  [-88,14%; -23,9%]
+## 12   0,03340923 1,033974e+00  0,03397358 [1,022; 1,046]     [2,22%; 4,59%]
+## 13   1,37755819 3,965208e+00  2,96520751 [1,903; 8,262]   [90,3%; 726,23%]
+## 14   0,75212734 2,121508e+00  1,12150838 [0,987; 4,559]  [-1,27%; 355,89%]
+## 15   0,28908949 1,335211e+00  0,33521122  [0,598; 2,98] [-40,17%; 197,97%]
+## 16   1,51165610 4,534234e+00  3,53423373 [2,337; 8,798]  [133,68%; 779,8%]
+## 17   1,15814979 3,184037e+00  2,18403669 [1,623; 6,247]   [62,3%; 524,67%]
+## 18   0,12006768 1,127573e+00  0,12757316 [0,511; 2,487] [-48,87%; 148,68%]
+## 19  -1,21285042 2,973485e-01 -0,70265150 [0,066; 1,331]  [-93,36%; 33,12%]
+## 20  -0,95032903 3,866138e-01 -0,61338620   [0,125; 1,2]  [-87,55%; 20,03%]
+##    Valor.p
+## 1   0,5555
+## 2   0,0000
+## 3   0,1701
+## 4   0,1132
+## 5   0,4855
+## 6   0,0121
+## 7   0,1566
+## 8   0,0014
+## 9   0,9780
+## 10  0,0056
+## 11  0,0112
+## 12  0,0000
+## 13  0,0002
+## 14  0,0540
+## 15  0,4803
+## 16  0,0000
+## 17  0,0008
+## 18  0,7661
+## 19  0,1128
+## 20  0,1002
+\end{verbatim}
+
+\hypertarget{sem-atendimentos-3}{%
+\subsubsection{Sem atendimentos}\label{sem-atendimentos-3}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod\_QtdENCAMINHAMENTO\_PARA\_ESPECIALIDADE7\_SA }\OtherTok{=} 
+  \FunctionTok{glm}\NormalTok{(Qtd\_ENCAMINHAMENTO\_PARA\_ESPECIALIDADE }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Idade1 }\SpecialCharTok{+}\NormalTok{ EstadoCivil1 }\SpecialCharTok{+}\NormalTok{ Num\_Membros\_Familia1 }\SpecialCharTok{+} 
+\NormalTok{        Consumo\_Agua1 }\SpecialCharTok{+} 
+\NormalTok{        Regional\_Atendimento1, }\AttributeTok{data =}\NormalTok{ treino\_QtdENCAMINHAMENTO\_PARA\_ESPECIALIDADE, }\AttributeTok{family =} \FunctionTok{poisson}\NormalTok{(}\AttributeTok{link =} \StringTok{\textquotesingle{}log\textquotesingle{}}\NormalTok{))}
+\FunctionTok{TabelaModelo}\NormalTok{(mod\_QtdENCAMINHAMENTO\_PARA\_ESPECIALIDADE7\_SA)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                                                      Variáveis
+## 1                                                                  (Intercept)
+## 2                                                                       Idade1
+## 3  EstadoCivil12) CONVIVE COM COMPANHEIRA(O), COM LACOS CONJUGAIS E SEM FILHOS
+## 4  EstadoCivil13) CONVIVE C/ COMPANHEIRA(O),C/ FILHO(S) E/OU OUTROS FAMILIARES
+## 5                EstadoCivil14) CONVIVE COM FAMILIA (RES), SEM COMPANHEIRA (O)
+## 6  EstadoCivil15) CONVIVE C/ OUTRA(S) PESSOA(S),S/LACOS CONSANG E/OU CONJUGAIS
+## 7                                                       EstadoCivil16) VIVE SO
+## 8                                                         Num_Membros_Familia1
+## 9                                                         Consumo_Agua1FERVIDA
+## 10                                                       Consumo_Agua1FILTRADA
+## 11                                                 Consumo_Agua1SEM TRATAMENTO
+## 12                                             Regional_Atendimento1CENTRO SUL
+## 13                                                  Regional_Atendimento1LESTE
+## 14                                               Regional_Atendimento1NORDESTE
+## 15                                               Regional_Atendimento1NOROESTE
+## 16                                                  Regional_Atendimento1NORTE
+## 17                                                  Regional_Atendimento1OESTE
+## 18                                               Regional_Atendimento1PAMPULHA
+## 19                                             Regional_Atendimento1VENDA NOVA
+##               β        Exp.β   Alteração   I.C...Exp.β.   I.C...Alteração.
+## 1   -0,35176731 7,034438e-01 -0,29655621 [0,126; 3,917] [-87,37%; 291,66%]
+## 2   -0,05474760 9,467241e-01 -0,05327593 [0,926; 0,968]   [-7,45%; -3,16%]
+## 3    0,39731973 1,487832e+00  0,48783157  [0,817; 2,71]    [-18,32%; 171%]
+## 4   -0,58272789 5,583731e-01 -0,44162690 [0,252; 1,238]   [-74,81%; 23,8%]
+## 5    0,16762544 1,182494e+00  0,18249362 [0,791; 1,768]  [-20,93%; 76,85%]
+## 6    1,23647588 3,443457e+00  2,44345689 [1,657; 7,155]  [65,72%; 615,52%]
+## 7    0,46221783 1,587591e+00  0,58759110 [0,839; 3,006] [-16,14%; 200,57%]
+## 8    0,05395698 1,055439e+00  0,05543919  [1,022; 1,09]     [2,22%; 8,98%]
+## 9  -13,71104298 1,110119e-06 -0,99999889       [0; Inf]      [-100%; Inf%]
+## 10  -0,90215360 4,056950e-01 -0,59430499 [0,205; 0,803] [-79,49%; -19,74%]
+## 11  -1,13823841 3,203829e-01 -0,67961709 [0,127; 0,811] [-87,35%; -18,88%]
+## 12   1,42617137 4,162731e+00  3,16273109 [1,998; 8,674]  [99,77%; 767,43%]
+## 13   0,80023888 2,226073e+00  1,22607262 [1,038; 4,776]   [3,76%; 377,57%]
+## 14   0,26738875 1,306548e+00  0,30654827 [0,586; 2,915] [-41,44%; 191,51%]
+## 15   1,56574804 4,786254e+00  3,78625388  [2,47; 9,273] [147,04%; 827,31%]
+## 16   1,16830759 3,216544e+00  2,21654432 [1,641; 6,306]  [64,06%; 530,62%]
+## 17   0,07513732 1,078032e+00  0,07803217 [0,489; 2,376]  [-51,09%; 137,6%]
+## 18  -1,20787571 2,988314e-01 -0,70116859 [0,067; 1,338]  [-93,33%; 33,81%]
+## 19  -0,93220056 3,936864e-01 -0,60631357 [0,127; 1,222]   [-87,32%; 22,2%]
+##    Valor.p
+## 1   0,6880
+## 2   0,0000
+## 3   0,1940
+## 4   0,1514
+## 5   0,4143
+## 6   0,0009
+## 7   0,1558
+## 8   0,0010
+## 9   0,9783
+## 10  0,0096
+## 11  0,0163
+## 12  0,0001
+## 13  0,0399
+## 14  0,5137
+## 15  0,0000
+## 16  0,0007
+## 17  0,8522
+## 18  0,1143
+## 19  0,1067
+\end{verbatim}
+
+\hypertarget{qtd_encaminhamento_para_saude_mental}{%
+\subsection{Qtd\_ENCAMINHAMENTO\_PARA\_SAUDE\_MENTAL}\label{qtd_encaminhamento_para_saude_mental}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{DescritivaCat}\NormalTok{(treino\_QtdENCAMINHAMENTO\_PARA\_SAUDE\_MENTAL}\SpecialCharTok{$}\NormalTok{Qtd\_ENCAMINHAMENTO\_PARA\_SAUDE\_MENTAL)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Freq. Absoluta (N) Freq. Relativa (%)
+## 0               8644       0,9970011534
+## 1                 25       0,0028835063
+## 2                  1       0,0001153403
+\end{verbatim}
+
+\end{document}
